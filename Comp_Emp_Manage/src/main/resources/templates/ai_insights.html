@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>AI Insights & Chatbot</title>
+    <style>
+        .chat-container {
+            height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: .375rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+        .chat-message {
+            margin-bottom: 1rem;
+            max-width: 80%;
+        }
+        .chat-message.user {
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-message.ai {
+            margin-right: auto;
+            text-align: left;
+        }
+        .message-bubble {
+            display: inline-block;
+            padding: .75rem 1rem;
+            border-radius: 1rem;
+        }
+        .chat-message.user .message-bubble {
+            background-color: #0d6efd;
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+        .chat-message.ai .message-bubble {
+            background-color: #e9ecef;
+            color: #212529;
+            border-bottom-left-radius: 0;
+        }
+        .typing-indicator {
+            font-style: italic;
+            color: #6c757d;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0 text-primary"><i class="fa-solid fa-robot me-2"></i> NexusHR AI Assistant</h2>
+                <p class="text-muted mb-0">Ask me anything about company HR data!</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <!-- Chat Area -->
+                        <div class="chat-container m-3" id="chatContainer">
+                            <div class="chat-message ai">
+                                <div class="message-bubble shadow-sm">
+                                    Hello! I am your AI HR Assistant. I can analyze company data, check leave statistics, and answer your HR questions. How can I help you today?
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Typing Indicator -->
+                        <div class="px-4 pb-2 typing-indicator" id="typingIndicator">
+                            <i class="fa-solid fa-circle-notch fa-spin me-2"></i> AI is thinking...
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="card-footer bg-white border-top p-3">
+                            <form id="chatForm" class="d-flex gap-2">
+                                <input type="text" id="userInput" class="form-control rounded-pill px-4" placeholder="Ask a question (e.g., 'How many employees do we have?')" required autocomplete="off">
+                                <button type="submit" class="btn btn-primary rounded-pill px-4" id="sendBtn">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('chatForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const inputField = document.getElementById('userInput');
+                const message = inputField.value.trim();
+                if (!message) return;
+                
+                const chatContainer = document.getElementById('chatContainer');
+                const typingIndicator = document.getElementById('typingIndicator');
+                const sendBtn = document.getElementById('sendBtn');
+                
+                // Append User Message
+                const userMsgDiv = document.createElement('div');
+                userMsgDiv.className = 'chat-message user';
+                userMsgDiv.innerHTML = `<div class="message-bubble shadow-sm">${message}</div>`;
+                chatContainer.appendChild(userMsgDiv);
+                
+                // Clear input and scroll down
+                inputField.value = '';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Show typing indicator
+                typingIndicator.style.display = 'block';
+                inputField.disabled = true;
+                sendBtn.disabled = true;
+
+                // Make API Call to Backend
+                fetch('/ai-insights/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    typingIndicator.style.display = 'none';
+                    inputField.disabled = false;
+                    sendBtn.disabled = false;
+                    inputField.focus();
+                    
+                    // Append AI Message
+                    const aiMsgDiv = document.createElement('div');
+                    aiMsgDiv.className = 'chat-message ai';
+                    aiMsgDiv.innerHTML = `<div class="message-bubble shadow-sm">${data.reply.replace(/\n/g, '<br>')}</div>`;
+                    chatContainer.appendChild(aiMsgDiv);
+                    
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    typingIndicator.style.display = 'none';
+                    inputField.disabled = false;
+                    sendBtn.disabled = false;
+                    
+                    const aiMsgDiv = document.createElement('div');
+                    aiMsgDiv.className = 'chat-message ai';
+                    aiMsgDiv.innerHTML = `<div class="message-bubble shadow-sm text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i> Sorry, I encountered an error while processing your request.</div>`;
+                    chatContainer.appendChild(aiMsgDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                });
+            });
+        </script>
+        
+    </div>
+</body>
+</html>

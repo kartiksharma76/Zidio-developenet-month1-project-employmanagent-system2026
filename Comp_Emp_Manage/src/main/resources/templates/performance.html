@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Performance Reviews</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Performance Management</h2>
+            <button th:if="${isAdminOrManager}" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReviewModal">
+                <i class="fa-solid fa-star me-2"></i> New Review
+            </button>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Performance Summary Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card bg-info text-white border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0 text-white-50">Total Reviews</h6>
+                            <i class="fa-solid fa-clipboard-list fa-2x opacity-50"></i>
+                        </div>
+                        <h2 class="mb-0" th:text="${reviews.size()}">0</h2>
+                        <small class="text-white-50 mt-2 d-block">Submitted this year</small>
+                    </div>
+                </div>
+            </div>
+            <!-- Additional metrics could be added here -->
+        </div>
+
+        <!-- Reviews Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h5 class="mb-0 fw-bold">Recent Reviews</h5>
+            </div>
+            <div class="card-body p-0 mt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4 py-3">Employee</th>
+                                <th class="px-4 py-3">Review Date</th>
+                                <th class="px-4 py-3">Rating</th>
+                                <th class="px-4 py-3">Reviewer</th>
+                                <th class="px-4 py-3 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="review : ${reviews}">
+                                <td class="px-4 py-3">
+                                    <div class="fw-bold" th:text="${review.employee.firstName + ' ' + review.employee.lastName}">John Doe</div>
+                                    <div class="small text-muted" th:text="${review.employee.department}">Engineering</div>
+                                </td>
+                                <td class="px-4 py-3" th:text="${#temporals.format(review.reviewDate, 'MMM dd, yyyy')}">Oct 24, 2023</td>
+                                <td class="px-4 py-3">
+                                    <div class="text-warning">
+                                        <i class="fa-solid fa-star" th:each="i : ${#numbers.sequence(1, review.rating)}"></i><i class="fa-regular fa-star" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}" th:if="${review.rating < 5}"></i>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3" th:text="${review.reviewerName}">Manager</td>
+                                <td class="px-4 py-3 text-end">
+                                    <!-- View Details Button -->
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" th:data-bs-target="'#viewReviewModal' + ${review.id}">View Details</button>
+                                </td>
+                            </tr>
+                            <tr th:if="${reviews.empty}">
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-star-half-stroke fa-3x mb-3 text-light"></i>
+                                    <h5>No reviews found</h5>
+                                    <p>Start by submitting a performance review.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Modals for Each Review (for "View Details") -->
+        <div th:each="review : ${reviews}">
+            <div class="modal fade" th:id="'viewReviewModal' + ${review.id}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-light border-0">
+                            <h5 class="modal-title fw-bold">Performance Review Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <h6 class="text-muted mb-1">Employee</h6>
+                                    <p class="fw-bold mb-0" th:text="${review.employee.firstName + ' ' + review.employee.lastName}"></p>
+                                </div>
+                                <div class="col-sm-6 text-sm-end">
+                                    <h6 class="text-muted mb-1">Rating</h6>
+                                    <div class="text-warning fs-5">
+                                        <i class="fa-solid fa-star" th:each="i : ${#numbers.sequence(1, review.rating)}"></i><i class="fa-regular fa-star" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}" th:if="${review.rating < 5}"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Goals & Objectives</h6>
+                                <div class="p-3 bg-light rounded" th:text="${review.goals}"></div>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-2">Manager Feedback</h6>
+                                <div class="p-3 bg-light rounded" th:text="${review.feedback}"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Review Modal -->
+        <div class="modal fade" id="addReviewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold">Submit Performance Review</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/performance/add}" method="post">
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold">Select Employee</label>
+                                    <select name="employeeId" class="form-select" required>
+                                        <option value="" disabled selected>-- Choose Employee --</option>
+                                        <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.firstName + ' ' + emp.lastName + ' (' + emp.department + ')'}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Rating (1-5)</label>
+                                    <select name="rating" class="form-select" required>
+                                        <option value="5">5 - Excellent</option>
+                                        <option value="4">4 - Good</option>
+                                        <option value="3" selected>3 - Satisfactory</option>
+                                        <option value="2">2 - Needs Improvement</option>
+                                        <option value="1">1 - Poor</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Goals & Objectives</label>
+                                    <textarea name="goals" class="form-control" rows="3" placeholder="Set goals for the next review cycle..." required></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Manager Feedback</label>
+                                    <textarea name="feedback" class="form-control" rows="4" placeholder="Detailed feedback on employee performance..." required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-check me-2"></i> Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

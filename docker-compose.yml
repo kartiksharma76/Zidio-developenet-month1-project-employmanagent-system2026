@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:17-alpine
+    container_name: nexushr_db
+    environment:
+      POSTGRES_DB: comp_emp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - nexushr_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexushr_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - nexushr_network
+
+  backend:
+    build:
+      context: ./Comp_Emp_Manage
+    container_name: nexushr_backend
+    ports:
+      - "6161:6161"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/comp_emp_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+    depends_on:
+      - database
+      - redis
+    networks:
+      - nexushr_network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nexushr_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - nexushr_network
+
+volumes:
+  pgdata:
+
+networks:
+  nexushr_network:
+    driver: bridge

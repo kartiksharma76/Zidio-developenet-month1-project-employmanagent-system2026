@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Payroll Management</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Payroll Management</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generatePayrollModal">
+                <i class="fa-solid fa-file-invoice-dollar me-2"></i> Generate Payroll
+            </button>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Payroll Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0 text-white-50">Total Payroll Processed</h6>
+                            <i class="fa-solid fa-money-check-dollar fa-2x opacity-50"></i>
+                        </div>
+                        <h2 class="mb-0" th:text="${payrolls.size()}">0</h2>
+                        <small class="text-white-50 mt-2 d-block">This month</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0 text-white-50">Paid Out</h6>
+                            <i class="fa-solid fa-check-double fa-2x opacity-50"></i>
+                        </div>
+                        <h2 class="mb-0">Success</h2>
+                        <small class="text-white-50 mt-2 d-block">All salaries disbursed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0 text-dark-50">Pending Processing</h6>
+                            <i class="fa-solid fa-clock-rotate-left fa-2x opacity-50"></i>
+                        </div>
+                        <h2 class="mb-0">Action Req</h2>
+                        <small class="text-dark-50 mt-2 d-block">Review pending payslips</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payroll Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h5 class="mb-0 fw-bold">Recent Payslips</h5>
+            </div>
+            <div class="card-body p-0 mt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Employee</th>
+                                <th class="px-4 py-3">Date</th>
+                                <th class="px-4 py-3">Net Salary</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="payroll : ${payrolls}">
+                                <td class="px-4 py-3" th:text="'#' + ${payroll.id}">#1</td>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px; font-weight: bold; font-size: 0.9rem;" th:text="${#strings.substring(payroll.employee.firstName,0,1) + #strings.substring(payroll.employee.lastName,0,1)}">JD</div>
+                                        <div class="fw-bold" th:text="${payroll.employee.firstName + ' ' + payroll.employee.lastName}">John Doe</div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-muted" th:text="${#temporals.format(payroll.paymentDate, 'MMM dd, yyyy')}">Oct 24, 2023</td>
+                                <td class="px-4 py-3 fw-bold text-success" th:text="'$' + ${payroll.netSalary}">$5000</td>
+                                <td class="px-4 py-3">
+                                    <span th:if="${payroll.status == 'PAID'}" class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">PAID</span>
+                                    <span th:if="${payroll.status == 'PENDING'}" class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">PENDING</span>
+                                </td>
+                                <td class="px-4 py-3 text-end">
+                                    <form th:if="${payroll.status == 'PENDING'}" th:action="@{/payroll/pay/{id}(id=${payroll.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">Mark Paid</button>
+                                    </form>
+                                    <a th:href="@{/payroll/download/{id}(id=${payroll.id})}" class="btn btn-sm btn-outline-secondary ms-2 rounded-circle" title="Download PDF"><i class="fa-solid fa-download"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${payrolls.empty}">
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-file-invoice fa-3x mb-3 text-light"></i>
+                                    <h5>No payslips found</h5>
+                                    <p>Start by generating a payroll for an employee.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generate Payroll Modal -->
+        <div class="modal fade" id="generatePayrollModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold">Generate Payslip</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/payroll/generate}" method="post">
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select Employee</label>
+                                <select name="employeeId" class="form-select" required>
+                                    <option value="" disabled selected>-- Choose Employee --</option>
+                                    <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.firstName + ' ' + emp.lastName + ' - $' + (emp.salary != null ? emp.salary : '0.0')}"></option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Additional Allowances ($)</label>
+                                <input type="number" step="0.01" name="allowances" class="form-control" value="0.0" />
+                                <div class="form-text">Bonuses or reimbursements for this cycle.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

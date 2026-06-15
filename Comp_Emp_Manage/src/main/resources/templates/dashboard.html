@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Dashboard</title>
+    <!-- Include Chart.js for real-time graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Overview Dashboard</h2>
+            <div>
+                <span class="text-muted">Welcome back, </span>
+                <strong th:text="${#authentication.name}">User</strong>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <!-- Admin Dashboard -->
+            <th:block th:if="${isAdmin}">
+                <div class="col-12 mb-2"><h5 class="text-primary fw-bold"><i class="fa-solid fa-user-shield me-2"></i> Admin Portal</h5></div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-start border-primary border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                        <i class="fa-solid fa-users fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">Total Employees</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${totalEmployees}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card h-100 border-start border-success border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                        <i class="fa-solid fa-calendar-check fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">Total Leaves</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${totalLeaves}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card h-100 border-start border-info border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                        <i class="fa-solid fa-indian-rupee-sign fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">Total Payrolls</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${totalPayrolls}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- Manager Dashboard -->
+            <th:block th:if="${isManager}">
+                <div class="col-12 mb-2"><h5 class="text-info fw-bold"><i class="fa-solid fa-user-tie me-2"></i> Manager Portal</h5></div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-start border-primary border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                        <i class="fa-solid fa-users-viewfinder fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">Team Overview</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${totalEmployees}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-start border-warning border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                                        <i class="fa-solid fa-clipboard-list fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">Company Leaves</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${totalLeaves}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- Employee Dashboard -->
+            <th:block th:if="${isEmployee or isManager}">
+                <div class="col-12 mt-4 mb-2"><h5 class="text-success fw-bold"><i class="fa-solid fa-user me-2"></i> My Dashboard</h5></div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-start border-primary border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                        <i class="fa-solid fa-clock fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">My Attendance</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${myAttendanceCount}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-start border-warning border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                                        <i class="fa-solid fa-bed fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">My Leaves</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${myLeavesCount}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-start border-success border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                        <i class="fa-solid fa-file-invoice-dollar fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-1">My Payslips</p>
+                                    <h4 class="mb-0 fw-bold" th:text="${myPayslipsCount}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+        
+        <!-- Real-Time Company Graph (Visible to Admin and Manager) -->
+        <th:block th:if="${isAdmin or isManager}">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold"><i class="fa-solid fa-chart-pie text-primary me-2"></i> Real-Time Department Distribution</h5>
+                            <span class="badge bg-success bg-opacity-10 text-success"><i class="fa-solid fa-circle-dot fa-fade me-1"></i> Live</span>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+                                <canvas id="departmentChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const ctx = document.getElementById('departmentChart').getContext('2d');
+                    let departmentChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                data: [],
+                                backgroundColor: [
+                                    'rgba(13, 110, 253, 0.7)',
+                                    'rgba(25, 135, 84, 0.7)',
+                                    'rgba(255, 193, 7, 0.7)',
+                                    'rgba(220, 53, 69, 0.7)',
+                                    'rgba(13, 202, 240, 0.7)',
+                                    'rgba(102, 16, 242, 0.7)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                }
+                            }
+                        }
+                    });
+
+                    function fetchGraphData() {
+                        fetch('/api/dashboard/stats')
+                            .then(response => response.json())
+                            .then(data => {
+                                const deptData = data.departmentDistribution;
+                                departmentChart.data.labels = Object.keys(deptData);
+                                departmentChart.data.datasets[0].data = Object.values(deptData);
+                                departmentChart.update();
+                            })
+                            .catch(error => console.error('Error fetching graph data:', error));
+                    }
+
+                    // Fetch initially and then every 5 seconds
+                    fetchGraphData();
+                    setInterval(fetchGraphData, 5000);
+                });
+            </script>
+        </th:block>
+        
+        <!-- Attendance Quick Action -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-transparent border-bottom pb-3 pt-3">
+                        <h5 class="mb-0"><i class="fa-solid fa-clock text-primary me-2"></i> Daily Attendance</h5>
+                    </div>
+                    <div class="card-body text-center py-5">
+                        <h4 class="mb-4" id="currentTime">00:00:00</h4>
+                        <div class="d-flex justify-content-center gap-3">
+                            <form th:action="@{/attendance/punch-in}" method="post">
+                                <button type="submit" class="btn btn-success btn-lg px-4 rounded-pill">
+                                    <i class="fa-solid fa-sign-in-alt me-2"></i> Punch In
+                                </button>
+                            </form>
+                            <form th:action="@{/attendance/punch-out}" method="post">
+                                <button type="submit" class="btn btn-danger btn-lg px-4 rounded-pill">
+                                    <i class="fa-solid fa-sign-out-alt me-2"></i> Punch Out
+                                </button>
+                            </form>
+                        </div>
+                        <p class="text-muted mt-3 mb-0">Don't forget to punch out when you leave!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-transparent border-bottom pb-3 pt-3">
+                        <h5 class="mb-0"><i class="fa-solid fa-bell text-warning me-2"></i> Recent Activity</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">Welcome to NexusHR!</div>
+                                    The new portal is now live.
+                                </div>
+                                <span class="badge bg-primary rounded-pill">New</span>
+                            </li>
+                            <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-start text-muted text-center">
+                                No other recent activities found.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Live Clock Script -->
+        <script>
+            function updateClock() {
+                const now = new Date();
+                let hours = now.getHours();
+                let minutes = now.getMinutes();
+                let seconds = now.getSeconds();
+                let ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                const timeString = hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+                document.getElementById('currentTime').innerText = timeString;
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        </script>
+        
+    </div>
+</body>
+</html>

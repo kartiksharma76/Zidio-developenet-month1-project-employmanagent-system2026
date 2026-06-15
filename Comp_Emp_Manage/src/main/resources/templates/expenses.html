@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Expense Claims</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Expense Claims</h2>
+            <div th:unless="${isAdminOrManager}">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                    <i class="fa-solid fa-receipt me-2"></i> Submit Claim
+                </button>
+            </div>
+            <!-- Admins/Managers could also submit their own claims if needed, simplified here -->
+            <div th:if="${isAdminOrManager}">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                    <i class="fa-solid fa-receipt me-2"></i> Submit Claim
+                </button>
+            </div>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4 py-3" th:if="${isAdminOrManager}">Employee</th>
+                                <th class="px-4 py-3">Date</th>
+                                <th class="px-4 py-3">Description</th>
+                                <th class="px-4 py-3">Amount</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3" th:if="${isAdminOrManager}">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="expense : ${expenses}">
+                                <td class="px-4 py-3" th:if="${isAdminOrManager}">
+                                    <div class="fw-bold" th:text="${expense.employee.firstName + ' ' + expense.employee.lastName}">Employee Name</div>
+                                </td>
+                                <td class="px-4 py-3" th:text="${#temporals.format(expense.expenseDate, 'dd MMM yyyy')}">Date</td>
+                                <td class="px-4 py-3" th:text="${expense.description}">Description</td>
+                                <td class="px-4 py-3 fw-bold text-success" th:text="'$' + ${expense.amount}">$0.00</td>
+                                <td class="px-4 py-3">
+                                    <span class="badge" 
+                                          th:classappend="${expense.status == 'APPROVED' ? 'bg-success' : (expense.status == 'PENDING' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                          th:text="${expense.status}">STATUS</span>
+                                </td>
+                                <td class="px-4 py-3" th:if="${isAdminOrManager}">
+                                    <div th:if="${expense.status == 'PENDING'}">
+                                        <form th:action="@{|/expenses/update-status/${expense.id}|}" method="post" class="d-inline">
+                                            <input type="hidden" name="status" value="APPROVED"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Approve"><i class="fa-solid fa-check"></i></button>
+                                        </form>
+                                        <form th:action="@{|/expenses/update-status/${expense.id}|}" method="post" class="d-inline">
+                                            <input type="hidden" name="status" value="REJECTED"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+                                        </form>
+                                    </div>
+                                    <div th:unless="${expense.status == 'PENDING'}" class="text-muted small">
+                                        No action
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${expenses == null or expenses.empty}">
+                                <td th:colspan="${isAdminOrManager ? 6 : 4}" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-file-invoice fa-3x mb-3 text-light"></i>
+                                    <h5>No expense claims found</h5>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Expense Modal -->
+        <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold">Submit Expense Claim</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/expenses/add}" method="post" th:object="${newExpense}">
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" step="0.01" th:field="*{amount}" class="form-control" required />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Expense Date</label>
+                                <input type="date" th:field="*{expenseDate}" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Description</label>
+                                <textarea th:field="*{description}" class="form-control" rows="3" placeholder="Describe the expense (e.g., Client lunch, Software subscription)" required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-paper-plane me-2"></i> Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
