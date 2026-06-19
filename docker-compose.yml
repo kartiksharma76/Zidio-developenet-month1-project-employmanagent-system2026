@@ -2,16 +2,15 @@ version: '3.8'
 
 services:
   database:
-    image: postgres:17-alpine
+    image: mysql:8.0
     container_name: nexushr_db
     environment:
-      POSTGRES_DB: comp_emp_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      MYSQL_DATABASE: comp_emp_management
+      MYSQL_ROOT_PASSWORD: Kartik@2005
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/mysql
     networks:
       - nexushr_network
 
@@ -30,9 +29,9 @@ services:
     ports:
       - "6161:6161"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/comp_emp_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_URL=jdbc:mysql://database:3306/comp_emp_management?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=Kartik@2005
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
       - NVIDIA_API_KEY=${NVIDIA_API_KEY}
@@ -42,19 +41,21 @@ services:
     networks:
       - nexushr_network
 
-  frontend:
-    build:
-      context: ./frontend
-    container_name: nexushr_frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - nexushr_network
+  # Frontend block is commented out because the 'frontend' folder is missing.
+  # Uncomment this when you add the frontend folder to the repository.
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #   container_name: nexushr_frontend
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - nexushr_network
 
 volumes:
-  pgdata:
+  dbdata:
 
 networks:
   nexushr_network:
