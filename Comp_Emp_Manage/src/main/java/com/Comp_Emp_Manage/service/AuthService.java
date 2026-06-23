@@ -24,6 +24,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final com.Comp_Emp_Manage.repository.EmployeeRepository employeeRepository;
+    private final com.Comp_Emp_Manage.repository.OtpRepository otpRepository;
+    private final com.Comp_Emp_Manage.service.EmailService emailService;
 
     public String registerUser(SignupRequest signupRequest) {
         if (userAuthRepository.existsByUserEmail(signupRequest.getUserEmail())) {
@@ -102,5 +104,56 @@ public class AuthService {
             .build();
         
         employeeRepository.save(employee);
+    }
+
+    public void generateOtp(String email) {
+        if (!userAuthRepository.existsByUserEmail(email)) {
+            throw new RuntimeException("Email not found in our records");
+        }
+
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
+
+        // Delete existing OTP if any
+        otpRepository.findByEmail(email).ifPresent(existingOtp -> otpRepository.delete(existingOtp));
+
+        com.Comp_Emp_Manage.entity.OtpEntity otpEntity = com.Comp_Emp_Manage.entity.OtpEntity.builder()
+                .email(email)
+                .otp(otp)
+                .expirationTime(java.time.LocalDateTime.now().plusMinutes(5))
+                .build();
+
+        otpRepository.save(otpEntity);
+        emailService.sendOtpEmail(email, otp);
+    }
+
+    public boolean verifyOtp(String email, String otp) {
+        com.Comp_Emp_Manage.entity.OtpEntity otpEntity = otpRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("No OTP found for this email"));
+
+        if (otpEntity.getExpirationTime().isBefore(java.time.LocalDateTime.now())) {
+            otpRepository.delete(otpEntity);
+            throw new RuntimeException("OTP has expired");
+        }
+
+        if (!otpEntity.getOtp().equals(otp)) {
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        return true;
+    }
+
+    public void resetPassword(String email, String otp, String newPassword) {
+        // verify OTP again to ensure safety
+        verifyOtp(email, otp);
+
+        UserAuth user = userAuthRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userAuthRepository.save(user);
+
+        // Delete OTP after successful reset
+        otpRepository.deleteByEmail(email);
     }
 }
