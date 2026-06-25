@@ -156,4 +156,12 @@ public class AuthService {
         // Delete OTP after successful reset
         otpRepository.deleteByEmail(email);
     }
+
+    public void simpleResetPassword(String email, String newPassword) {
+        UserAuth user = userAuthRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("User with this email not found."));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userAuthRepository.save(user);
+    }
 }

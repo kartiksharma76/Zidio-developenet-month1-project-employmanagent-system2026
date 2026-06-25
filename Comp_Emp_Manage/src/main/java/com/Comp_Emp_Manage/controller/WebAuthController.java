@@ -38,4 +38,23 @@ public class WebAuthController {
             return "redirect:/register";
         }
     }
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String resetPassword(@org.springframework.web.bind.annotation.RequestParam("email") String email,
+                                @org.springframework.web.bind.annotation.RequestParam("newPassword") String newPassword,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            authService.simpleResetPassword(email, newPassword);
+            redirectAttributes.addFlashAttribute("success", "Password reset successfully! Please login with your new password.");
+            return "redirect:/login";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/forgot-password";
+        }
+    }
 }
