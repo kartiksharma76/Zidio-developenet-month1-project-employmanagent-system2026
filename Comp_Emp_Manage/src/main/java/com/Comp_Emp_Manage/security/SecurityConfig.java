@@ -32,8 +32,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(Customizer.withDefaults()) // Enable CORS
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/login", "/register", "/api/v1/auth/**").permitAll() // Allow public access to login/register
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/assets/**").permitAll()
+                .requestMatchers("/login", "/register", "/forgot-password", "/forgot-password.html", "/api/v1/auth/**").permitAll() // Allow public access to login/register/forgot-password
                 .anyRequest().authenticated() // Require authentication for everything else
             )
             .formLogin(form -> form
