@@ -9,13 +9,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Autowired
+    @Autowired(required = false)
     private JavaMailSender javaMailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:noreply@example.com}")
     private String fromEmail;
 
     public void sendOtpEmail(String toEmail, String otp) {
+        if (javaMailSender == null) {
+            System.out.println("Mock OTP Email sent successfully to " + toEmail + " with OTP: " + otp);
+            return;
+        }
+        
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
