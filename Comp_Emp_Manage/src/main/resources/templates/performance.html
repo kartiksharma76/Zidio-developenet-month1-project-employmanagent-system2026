@@ -51,6 +51,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="px-4 py-3">Employee</th>
+                                <th class="px-4 py-3">Review Type</th>
+                                <th class="px-4 py-3">Attendance (P/A)</th>
                                 <th class="px-4 py-3">Review Date</th>
                                 <th class="px-4 py-3">Rating</th>
                                 <th class="px-4 py-3">Reviewer</th>
@@ -62,6 +64,13 @@
                                 <td class="px-4 py-3">
                                     <div class="fw-bold" th:text="${review.employee.firstName + ' ' + review.employee.lastName}">John Doe</div>
                                     <div class="small text-muted" th:text="${review.employee.department}">Engineering</div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="badge bg-secondary px-2 py-1" th:text="${review.reviewType != null ? review.reviewType : 'GENERAL'}">Monthly</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1" th:text="${(review.presentCount != null ? review.presentCount : 0) + ' P'}">0 P</span>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1" th:text="${(review.absentCount != null ? review.absentCount : 0) + ' A'}">0 A</span>
                                 </td>
                                 <td class="px-4 py-3" th:text="${#temporals.format(review.reviewDate, 'MMM dd, yyyy')}">Oct 24, 2023</td>
                                 <td class="px-4 py-3">
@@ -76,7 +85,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${reviews.empty}">
-                                <td colspan="5" class="text-center py-5 text-muted">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-star-half-stroke fa-3x mb-3 text-light"></i>
                                     <h5>No reviews found</h5>
                                     <p>Start by submitting a performance review.</p>
@@ -110,6 +119,19 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <h6 class="text-muted mb-1">Review Type</h6>
+                                    <p class="fw-bold mb-0" th:text="${review.reviewType != null ? review.reviewType : 'GENERAL'}"></p>
+                                </div>
+                                <div class="col-sm-6 text-sm-end">
+                                    <h6 class="text-muted mb-1">Attendance in Period</h6>
+                                    <p class="mb-0">
+                                        <span class="badge bg-success" th:text="${(review.presentCount != null ? review.presentCount : 0) + ' Days Present'}"></span>
+                                        <span class="badge bg-danger" th:text="${(review.absentCount != null ? review.absentCount : 0) + ' Days Absent'}"></span>
+                                    </p>
+                                </div>
+                            </div>
                             <div class="mb-4">
                                 <h6 class="text-muted mb-2">Goals & Objectives</h6>
                                 <div class="p-3 bg-light rounded" th:text="${review.goals}"></div>
@@ -138,14 +160,22 @@
                     <form th:action="@{/performance/add}" method="post">
                         <div class="modal-body p-4">
                             <div class="row g-3">
-                                <div class="col-md-8">
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold">Select Employee</label>
                                     <select name="employeeId" class="form-select" required>
                                         <option value="" disabled selected>-- Choose Employee --</option>
                                         <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.firstName + ' ' + emp.lastName + ' (' + emp.department + ')'}"></option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Review Type</label>
+                                    <select name="reviewType" class="form-select" required>
+                                        <option value="MONTHLY" selected>Monthly Review</option>
+                                        <option value="QUARTERLY">Quarterly Review</option>
+                                        <option value="YEARLY">Yearly Review</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold">Rating (1-5)</label>
                                     <select name="rating" class="form-select" required>
                                         <option value="5">5 - Excellent</option>

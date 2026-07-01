@@ -4,6 +4,7 @@ import com.Comp_Emp_Manage.entity.Employee;
 import com.Comp_Emp_Manage.entity.Performance;
 import com.Comp_Emp_Manage.repository.EmployeeRepository;
 import com.Comp_Emp_Manage.repository.PerformanceRepository;
+import com.Comp_Emp_Manage.repository.AttendanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +23,7 @@ public class WebPerformanceController {
 
     private final PerformanceRepository performanceRepository;
     private final EmployeeRepository employeeRepository;
+    private final AttendanceRepository attendanceRepository;
 
     @GetMapping
     public String viewPerformance(org.springframework.security.core.Authentication authentication, Model model) {
@@ -48,6 +50,7 @@ public class WebPerformanceController {
     @PostMapping("/add")
     public String addReview(@RequestParam Long employeeId,
                             @RequestParam Integer rating,
+                            @RequestParam String reviewType,
                             @RequestParam String goals,
                             @RequestParam String feedback,
                             RedirectAttributes redirectAttributes) {
@@ -55,10 +58,34 @@ public class WebPerformanceController {
             Employee employee = employeeRepository.findById(employeeId)
                     .orElseThrow(() -> new RuntimeException("Employee not found"));
 
+            LocalDate today = LocalDate.now();
+            LocalDate startDate;
+            if ("QUARTERLY".equalsIgnoreCase(reviewType)) {
+                startDate = today.minusMonths(3);
+            } else if ("YEARLY".equalsIgnoreCase(reviewType)) {
+                startDate = today.minusYears(1);
+            } else {
+                startDate = today.minusMonths(1); // Default to Monthly
+            }
+
+            java.util.List<com.Comp_Emp_Manage.entity.Attendance> attendanceRecords = 
+                    attendanceRepository.findByEmployeeId(employee.getId());
+
+            int presentCount = (int) attendanceRecords.stream()
+                    .filter(a -> !a.getDate().isBefore(startDate) && !a.getDate().isAfter(today) && "PRESENT".equalsIgnoreCase(a.getStatus()))
+                    .count();
+
+            int absentCount = (int) attendanceRecords.stream()
+                    .filter(a -> !a.getDate().isBefore(startDate) && !a.getDate().isAfter(today) && "ABSENT".equalsIgnoreCase(a.getStatus()))
+                    .count();
+
             Performance performance = Performance.builder()
                     .employee(employee)
-                    .reviewDate(LocalDate.now())
+                    .reviewDate(today)
                     .rating(rating)
+                    .reviewType(reviewType.toUpperCase())
+                    .presentCount(presentCount)
+                    .absentCount(absentCount)
                     .goals(goals)
                     .feedback(feedback)
                     .reviewerName("HR Manager") // Hardcoded for now

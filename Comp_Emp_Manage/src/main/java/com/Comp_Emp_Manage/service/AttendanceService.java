@@ -49,7 +49,22 @@ public class AttendanceService {
             throw new RuntimeException("Already checked out for today");
         }
 
-        attendance.setPunchOutTime(LocalTime.now());
+        LocalTime now = LocalTime.now();
+        LocalTime punchIn = attendance.getPunchInTime();
+        if (punchIn != null) {
+            java.time.Duration duration = java.time.Duration.between(punchIn, now);
+            if (duration.toMinutes() < 300) { // 5 hours = 300 minutes
+                long remainingMinutes = 300 - duration.toMinutes();
+                long remainingHours = remainingMinutes / 60;
+                long mins = remainingMinutes % 60;
+                throw new RuntimeException(String.format(
+                    "You can only punch out after 5 hours of punching in. Remaining time: %d hours and %d minutes.",
+                    remainingHours, mins
+                ));
+            }
+        }
+
+        attendance.setPunchOutTime(now);
         return attendanceRepository.save(attendance);
     }
 

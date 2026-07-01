@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Employee Work Reports - NexusHR</title>
+</head>
+<body>
+
+    <div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom no-print">
+        <h1 class="h2"><i class="fa-solid fa-file-invoice me-2 text-primary"></i> Employee Work Reports</h1>
+        <div class="btn-toolbar mb-2 mb-md-0 d-flex gap-2">
+            <button onclick="window.print();" class="btn btn-outline-secondary btn-sm shadow-sm rounded-pill px-3">
+                <i class="fa-solid fa-print me-1"></i> Print Report
+            </button>
+            <a th:href="@{/reports/export/pdf(startDate=${startDate}, endDate=${endDate}, department=${selectedDept})}" 
+               class="btn btn-danger btn-sm shadow-sm rounded-pill px-3">
+                <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+            </a>
+            <a th:href="@{/reports/export/csv(startDate=${startDate}, endDate=${endDate}, department=${selectedDept})}" 
+               class="btn btn-success btn-sm shadow-sm rounded-pill px-3">
+                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4 no-print">
+        <div class="card-body p-4">
+            <form th:action="@{/reports}" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-muted small">START DATE</label>
+                    <input type="date" name="startDate" th:value="${startDate}" class="form-control" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-muted small">END DATE</label>
+                    <input type="date" name="endDate" th:value="${endDate}" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold text-muted small">DEPARTMENT</label>
+                    <select name="department" class="form-select">
+                        <option value="ALL" th:selected="${selectedDept == 'ALL'}">All Departments</option>
+                        <option th:each="dept : ${departments}" th:value="${dept}" th:text="${dept}" th:selected="${dept == selectedDept}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 shadow-sm rounded-pill">
+                        <i class="fa-solid fa-filter me-1"></i> Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Report Table -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-primary fw-bold">
+                <i class="fa-solid fa-table me-2"></i> Employee Performance & Work Hours Summary
+            </h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill" th:text="'Report Period: ' + ${startDate} + ' to ' + ${endDate}"></span>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light text-muted">
+                        <tr>
+                            <th>Employee Name</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th class="text-center">Present Days</th>
+                            <th class="text-center">Absent Days</th>
+                            <th class="text-center">Total Worked Hours</th>
+                            <th class="text-center">Avg Hours/Day</th>
+                            <th class="text-center">Attendance Rate</th>
+                            <th class="text-end no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(reportData)}">
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-folder-open fs-2 mb-3 opacity-50 d-block"></i>
+                                No employee report data found for this range.
+                            </td>
+                        </tr>
+                        <tr th:each="empReport : ${reportData}">
+                            <td>
+                                <div class="fw-bold text-dark" th:text="${empReport.name}">John Doe</div>
+                                <small class="text-muted" th:text="'ID: #' + ${empReport.id}"></small>
+                            </td>
+                            <td th:text="${empReport.department}"></td>
+                            <td th:text="${empReport.designation}"></td>
+                            <td class="text-center">
+                                <span class="badge bg-success bg-opacity-10 text-success px-2 py-1" th:text="${empReport.presentCount}">0</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1" th:text="${empReport.absentCount}">0</span>
+                            </td>
+                            <td class="text-center fw-medium" th:text="${empReport.formattedTotalHours}">0h 0m</td>
+                            <td class="text-center text-muted" th:text="${empReport.formattedAverageHours}">0h 0m</td>
+                            <td class="text-center">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <div class="progress" style="width: 60px; height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             th:style="'width: ' + ${empReport.attendancePercentage} + '%'" 
+                                             th:aria-valuenow="${empReport.attendancePercentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="small fw-bold text-dark" th:text="${#numbers.formatDecimal(empReport.attendancePercentage, 1, 1)} + '%'">100%</span>
+                                </div>
+                            </td>
+                            <td class="text-end no-print">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                                        data-bs-toggle="modal" th:data-bs-target="'#detailModal' + ${empReport.id}">
+                                    <i class="fa-solid fa-list me-1"></i> View Logs
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Drill-down Modals -->
+    <div th:each="empReport : ${reportData}" class="no-print">
+        <div class="modal fade" th:id="'detailModal' + ${empReport.id}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fa-solid fa-calendar-day me-2 text-primary"></i> Attendance Logs for <span th:text="${empReport.name}"></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <span class="text-muted small d-block">DEPARTMENT</span>
+                                <strong th:text="${empReport.department}"></strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="text-muted small d-block">TOTAL WORKING HOURS</span>
+                                <strong th:text="${empReport.formattedTotalHours}"></strong>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Punch In</th>
+                                        <th>Punch Out</th>
+                                        <th>Hours Worked</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="detail : ${empReport.attendanceDetails}">
+                                        <td th:text="${detail.date}" class="fw-medium"></td>
+                                        <td>
+                                            <span class="badge bg-success bg-opacity-10 text-success" th:if="${detail.punchInTime != null}">
+                                                <i class="fa-regular fa-clock me-1"></i> <span th:text="${detail.punchInTime}"></span>
+                                            </span>
+                                            <span class="text-muted" th:if="${detail.punchInTime == null}">-</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger bg-opacity-10 text-danger" th:if="${detail.punchOutTime != null}">
+                                                <i class="fa-regular fa-clock me-1"></i> <span th:text="${detail.punchOutTime}"></span>
+                                            </span>
+                                            <span class="text-muted" th:if="${detail.punchOutTime == null}">-</span>
+                                        </td>
+                                        <td th:text="${detail.getWorkingHoursFormatted()}"></td>
+                                        <td>
+                                            <span th:if="${detail.status == 'PRESENT'}" class="badge bg-success rounded-pill px-3">Present</span>
+                                            <span th:if="${detail.status == 'ABSENT'}" class="badge bg-danger rounded-pill px-3">Absent</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(empReport.attendanceDetails)}">
+                                        <td colspan="5" class="text-center py-4 text-muted">No attendance logs found in this period.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light">
+                        <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Stylesheet CSS specifically for beautiful layout printing -->
+    <style>
+        @media print {
+            .no-print, #sidebar, .navbar, .toast-container, .modal-backdrop, .modal {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            #main-content {
+                width: 100% !important;
+                right: 0 !important;
+                left: 0 !important;
+                padding: 0 !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+            }
+        }
+    </style>
+
+    </div>
+</body>
+</html>

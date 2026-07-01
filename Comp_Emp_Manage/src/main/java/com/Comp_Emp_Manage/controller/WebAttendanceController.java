@@ -5,6 +5,7 @@ import com.Comp_Emp_Manage.entity.Attendance;
 import com.Comp_Emp_Manage.entity.Employee;
 import com.Comp_Emp_Manage.repository.AttendanceRepository;
 import com.Comp_Emp_Manage.repository.EmployeeRepository;
+import com.Comp_Emp_Manage.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -23,6 +24,7 @@ public class WebAttendanceController {
 
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
+    private final AttendanceService attendanceService;
 
     @org.springframework.web.bind.annotation.GetMapping
     public String viewAttendance(Authentication authentication, org.springframework.ui.Model model) {
@@ -48,23 +50,14 @@ public class WebAttendanceController {
         Optional<Employee> optEmployee = employeeRepository.findByEmail(email);
 
         if (optEmployee.isPresent()) {
-            Employee employee = optEmployee.get();
-            LocalDate today = LocalDate.now();
-            
-            Optional<Attendance> optAttendance = attendanceRepository.findByEmployeeAndDate(employee, today);
-            
-            if (optAttendance.isPresent()) {
-                redirectAttributes.addFlashAttribute("error", "You have already punched in today.");
-            } else {
-                Attendance attendance = Attendance.builder()
-                        .employee(employee)
-                        .date(today)
-                        .punchInTime(LocalTime.now())
-                        .status("PRESENT")
-                        .build();
-                attendanceRepository.save(attendance);
-                redirectAttributes.addFlashAttribute("success", "Punched in successfully at " + LocalTime.now());
+            try {
+                Attendance attendance = attendanceService.checkIn(optEmployee.get().getId());
+                redirectAttributes.addFlashAttribute("success", "Punched in successfully at " + attendance.getPunchInTime());
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", e.getMessage());
             }
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Employee profile not found.");
         }
         return "redirect:/dashboard";
     }
@@ -75,23 +68,14 @@ public class WebAttendanceController {
         Optional<Employee> optEmployee = employeeRepository.findByEmail(email);
 
         if (optEmployee.isPresent()) {
-            Employee employee = optEmployee.get();
-            LocalDate today = LocalDate.now();
-            
-            Optional<Attendance> optAttendance = attendanceRepository.findByEmployeeAndDate(employee, today);
-            
-            if (optAttendance.isPresent()) {
-                Attendance attendance = optAttendance.get();
-                if (attendance.getPunchOutTime() != null) {
-                    redirectAttributes.addFlashAttribute("error", "You have already punched out today.");
-                } else {
-                    attendance.setPunchOutTime(LocalTime.now());
-                    attendanceRepository.save(attendance);
-                    redirectAttributes.addFlashAttribute("success", "Punched out successfully at " + LocalTime.now());
-                }
-            } else {
-                redirectAttributes.addFlashAttribute("error", "You must punch in first.");
+            try {
+                Attendance attendance = attendanceService.checkOut(optEmployee.get().getId());
+                redirectAttributes.addFlashAttribute("success", "Punched out successfully at " + attendance.getPunchOutTime());
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", e.getMessage());
             }
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Employee profile not found.");
         }
         return "redirect:/dashboard";
     }

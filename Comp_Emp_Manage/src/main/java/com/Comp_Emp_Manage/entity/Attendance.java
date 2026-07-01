@@ -31,4 +31,22 @@ public class Attendance {
 
     private String status; // PRESENT, ABSENT, HALF_DAY
 
+    public Double getWorkingHours() {
+        if (punchInTime == null || punchOutTime == null) {
+            return 0.0;
+        }
+        long seconds = java.time.Duration.between(punchInTime, punchOutTime).getSeconds();
+        return seconds / 3600.0;
+    }
+
+    public String getWorkingHoursFormatted() {
+        if (punchInTime == null || punchOutTime == null) {
+            return "-";
+        }
+        java.time.Duration duration = java.time.Duration.between(punchInTime, punchOutTime);
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes() % 60;
+        return String.format("%dh %dm", hours, minutes);
+    }
+
 }

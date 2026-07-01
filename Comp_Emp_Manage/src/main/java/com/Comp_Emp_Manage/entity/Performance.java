@@ -36,4 +36,10 @@ public class Performance {
     private String feedback;
 
     private String reviewerName;
+
+    private String reviewType; // MONTHLY, QUARTERLY, YEARLY
+
+    private Integer presentCount;
+
+    private Integer absentCount;
 }

@@ -51,12 +51,13 @@
                             <th th:if="${isAdminOrManager}">Employee</th>
                             <th>Punch In</th>
                             <th>Punch Out</th>
+                            <th>Working Hours</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(attendanceRecords)}">
-                            <td colspan="5" class="text-center py-4 text-muted">
+                            <td colspan="6" class="text-center py-4 text-muted">
                                 <i class="fa-solid fa-calendar-times fs-2 mb-3 opacity-50 d-block"></i>
                                 No attendance records found.
                             </td>
@@ -85,6 +86,12 @@
                                     <i class="fa-regular fa-clock me-1"></i> <span th:text="${record.punchOutTime}"></span>
                                 </span>
                                 <span class="text-muted" th:if="${record.punchOutTime == null}">-</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info bg-opacity-10 text-info px-2 py-1" th:if="${record.punchInTime != null and record.punchOutTime != null}">
+                                    <i class="fa-solid fa-hourglass-half me-1"></i> <span th:text="${record.getWorkingHoursFormatted()}"></span>
+                                </span>
+                                <span class="text-muted" th:if="${record.punchInTime == null or record.punchOutTime == null}">-</span>
                             </td>
                             <td>
                                 <span th:if="${record.status == 'PRESENT'}" class="badge bg-success rounded-pill px-3">Present</span>
