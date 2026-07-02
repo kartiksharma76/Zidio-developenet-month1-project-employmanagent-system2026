@@ -51,29 +51,33 @@ public class Attendance {
         if (punchInTime == null || punchOutTime == null) {
             return 0.0;
         }
-        LocalDate outDate = punchOutDate != null ? punchOutDate : date;
-        java.time.LocalDateTime start = java.time.LocalDateTime.of(date, punchInTime);
-        java.time.LocalDateTime end = java.time.LocalDateTime.of(outDate, punchOutTime);
-        if (end.isBefore(start)) {
-            return 0.0;
+        long startSec = punchInTime.toSecondOfDay();
+        long endSec = punchOutTime.toSecondOfDay();
+        long diffSec;
+        if (endSec >= startSec) {
+            diffSec = endSec - startSec;
+        } else {
+            // Overnight shift (e.g. 10 PM to 6 AM)
+            diffSec = (24 * 3600 - startSec) + endSec;
         }
-        long seconds = java.time.Duration.between(start, end).getSeconds();
-        return seconds / 3600.0;
+        return diffSec / 3600.0;
     }
 
     public String getWorkingHoursFormatted() {
         if (punchInTime == null || punchOutTime == null) {
             return "-";
         }
-        LocalDate outDate = punchOutDate != null ? punchOutDate : date;
-        java.time.LocalDateTime start = java.time.LocalDateTime.of(date, punchInTime);
-        java.time.LocalDateTime end = java.time.LocalDateTime.of(outDate, punchOutTime);
-        if (end.isBefore(start)) {
-            return "0h 0m";
+        long startSec = punchInTime.toSecondOfDay();
+        long endSec = punchOutTime.toSecondOfDay();
+        long diffSec;
+        if (endSec >= startSec) {
+            diffSec = endSec - startSec;
+        } else {
+            // Overnight shift (e.g. 10 PM to 6 AM)
+            diffSec = (24 * 3600 - startSec) + endSec;
         }
-        java.time.Duration duration = java.time.Duration.between(start, end);
-        long hours = duration.toHours();
-        long minutes = duration.toMinutes() % 60;
+        long hours = diffSec / 3600;
+        long minutes = (diffSec % 3600) / 60;
         return String.format("%dh %dm", hours, minutes);
     }
 
