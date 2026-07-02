@@ -2,19 +2,21 @@ package com.Comp_Emp_Manage.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import java.sql.Date;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Converter(autoApply = true)
-public class LocalDateConverter implements AttributeConverter<LocalDate, Date> {
+public class LocalDateConverter implements AttributeConverter<LocalDate, String> {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
-    public Date convertToDatabaseColumn(LocalDate attribute) {
-        return attribute == null ? null : Date.valueOf(attribute);
+    public String convertToDatabaseColumn(LocalDate attribute) {
+        return attribute == null ? null : attribute.format(FORMATTER);
     }
 
     @Override
-    public LocalDate convertToEntityAttribute(Date dbData) {
-        return dbData == null ? null : dbData.toLocalDate();
+    public LocalDate convertToEntityAttribute(String dbData) {
+        return dbData == null ? null : LocalDate.parse(dbData, FORMATTER);
     }
 }
