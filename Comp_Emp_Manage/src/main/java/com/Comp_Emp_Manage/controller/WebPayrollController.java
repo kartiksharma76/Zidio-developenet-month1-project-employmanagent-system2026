@@ -81,10 +81,15 @@ public class WebPayrollController {
             title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
             document.add(title);
             
-            document.add(new com.lowagie.text.Paragraph("\n"));
             document.add(new com.lowagie.text.Paragraph("Employee Name: " + payroll.getEmployee().getFirstName() + " " + payroll.getEmployee().getLastName()));
             document.add(new com.lowagie.text.Paragraph("Department: " + payroll.getEmployee().getDepartment()));
             document.add(new com.lowagie.text.Paragraph("Payment Date: " + payroll.getPaymentDate()));
+            if (payroll.getWorkingDays() != null) {
+                document.add(new com.lowagie.text.Paragraph("Working Days: " + payroll.getWorkingDays() + " days"));
+            }
+            if (payroll.getWorkingHours() != null) {
+                document.add(new com.lowagie.text.Paragraph(String.format("Working Hours: %.1f hours", payroll.getWorkingHours())));
+            }
             document.add(new com.lowagie.text.Paragraph("\n"));
             
             com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(2);

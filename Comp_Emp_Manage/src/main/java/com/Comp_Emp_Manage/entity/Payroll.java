@@ -35,6 +35,9 @@ public class Payroll {
     @Column(nullable = false)
     private Double netSalary;
 
+    private Integer workingDays;
+    private Double workingHours;
+
     private String status; // PENDING, PAID
 
 }

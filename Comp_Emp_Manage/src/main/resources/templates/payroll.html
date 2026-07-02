@@ -76,6 +76,7 @@
                                 <th class="px-4 py-3">ID</th>
                                 <th class="px-4 py-3">Employee</th>
                                 <th class="px-4 py-3">Date</th>
+                                <th class="px-4 py-3">Days / Hrs</th>
                                 <th class="px-4 py-3">Net Salary</th>
                                 <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3 text-end">Action</th>
@@ -91,6 +92,11 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-muted" th:text="${#temporals.format(payroll.paymentDate, 'MMM dd, yyyy')}">Oct 24, 2023</td>
+                                <td class="px-4 py-3 text-muted">
+                                    <span th:text="${payroll.workingDays != null ? payroll.workingDays + ' d' : '-'}"></span>
+                                    /
+                                    <span th:text="${payroll.workingHours != null ? #numbers.formatDecimal(payroll.workingHours, 1, 1) + ' hrs' : '-'}"></span>
+                                </td>
                                 <td class="px-4 py-3 fw-bold text-success" th:text="'$' + ${payroll.netSalary}">$5000</td>
                                 <td class="px-4 py-3">
                                     <span th:if="${payroll.status == 'PAID'}" class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">PAID</span>
@@ -104,7 +110,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${payrolls.empty}">
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-file-invoice fa-3x mb-3 text-light"></i>
                                     <h5>No payslips found</h5>
                                     <p>Start by generating a payroll for an employee.</p>
