@@ -160,13 +160,13 @@
                                         <td th:text="${detail.date}" class="fw-medium"></td>
                                         <td>
                                             <span class="badge bg-success bg-opacity-10 text-success" th:if="${detail.punchInTime != null}">
-                                                <i class="fa-regular fa-clock me-1"></i> <span th:text="${detail.punchInTime}"></span>
+                                                <i class="fa-regular fa-clock me-1"></i> <span th:text="${detail.getPunchInTimeFormatted()}"></span>
                                             </span>
                                             <span class="text-muted" th:if="${detail.punchInTime == null}">-</span>
                                         </td>
                                         <td>
                                             <span class="badge bg-danger bg-opacity-10 text-danger" th:if="${detail.punchOutTime != null}">
-                                                <i class="fa-regular fa-clock me-1"></i> <span th:text="${detail.punchOutTime}"></span>
+                                                <i class="fa-regular fa-clock me-1"></i> <span th:text="${detail.getPunchOutTimeFormatted()}"></span>
                                             </span>
                                             <span class="text-muted" th:if="${detail.punchOutTime == null}">-</span>
                                         </td>

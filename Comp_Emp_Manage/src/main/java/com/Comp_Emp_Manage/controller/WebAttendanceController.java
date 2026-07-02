@@ -52,7 +52,7 @@ public class WebAttendanceController {
         if (optEmployee.isPresent()) {
             try {
                 Attendance attendance = attendanceService.checkIn(optEmployee.get().getId());
-                redirectAttributes.addFlashAttribute("success", "Punched in successfully at " + attendance.getPunchInTime());
+                redirectAttributes.addFlashAttribute("success", "Punched in successfully at " + attendance.getPunchInTimeFormatted());
             } catch (Exception e) {
                 redirectAttributes.addFlashAttribute("error", e.getMessage());
             }
@@ -70,7 +70,7 @@ public class WebAttendanceController {
         if (optEmployee.isPresent()) {
             try {
                 Attendance attendance = attendanceService.checkOut(optEmployee.get().getId());
-                redirectAttributes.addFlashAttribute("success", "Punched out successfully at " + attendance.getPunchOutTime());
+                redirectAttributes.addFlashAttribute("success", "Punched out successfully at " + attendance.getPunchOutTimeFormatted());
             } catch (Exception e) {
                 redirectAttributes.addFlashAttribute("error", e.getMessage());
             }

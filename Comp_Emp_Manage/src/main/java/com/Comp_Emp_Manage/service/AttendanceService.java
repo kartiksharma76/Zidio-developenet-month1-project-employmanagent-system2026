@@ -40,19 +40,14 @@ public class AttendanceService {
     }
 
     public Attendance checkOut(Long employeeId) {
-        LocalDate today = LocalDate.now();
+        Attendance attendance = attendanceRepository.findFirstByEmployeeIdAndPunchOutTimeIsNullOrderByDateDesc(employeeId)
+                .orElseThrow(() -> new RuntimeException("No active check-in record found. Please punch in first."));
 
-        Attendance attendance = attendanceRepository.findByEmployeeIdAndDate(employeeId, today)
-                .orElseThrow(() -> new RuntimeException("No check-in record found for today"));
-
-        if (attendance.getPunchOutTime() != null) {
-            throw new RuntimeException("Already checked out for today");
-        }
-
-        LocalTime now = LocalTime.now();
+        java.time.LocalDateTime nowDateTime = java.time.LocalDateTime.now();
         LocalTime punchIn = attendance.getPunchInTime();
         if (punchIn != null) {
-            java.time.Duration duration = java.time.Duration.between(punchIn, now);
+            java.time.LocalDateTime punchInDateTime = java.time.LocalDateTime.of(attendance.getDate(), punchIn);
+            java.time.Duration duration = java.time.Duration.between(punchInDateTime, nowDateTime);
             if (duration.toMinutes() < 300) { // 5 hours = 300 minutes
                 long remainingMinutes = 300 - duration.toMinutes();
                 long remainingHours = remainingMinutes / 60;
@@ -64,7 +59,8 @@ public class AttendanceService {
             }
         }
 
-        attendance.setPunchOutTime(now);
+        attendance.setPunchOutTime(nowDateTime.toLocalTime());
+        attendance.setPunchOutDate(nowDateTime.toLocalDate());
         return attendanceRepository.save(attendance);
     }
 

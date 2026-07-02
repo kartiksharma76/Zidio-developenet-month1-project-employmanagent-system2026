@@ -13,6 +13,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     Optional<Attendance> findByEmployeeAndDate(Employee employee, LocalDate date);
     Optional<Attendance> findByEmployeeIdAndDate(Long employeeId, LocalDate date);
     
+    Optional<Attendance> findFirstByEmployeeIdAndPunchOutTimeIsNullOrderByDateDesc(Long employeeId);
+    
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "employee")
     java.util.List<Attendance> findByEmployeeId(Long employeeId);
 

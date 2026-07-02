@@ -29,13 +29,35 @@ public class Attendance {
     
     private LocalTime punchOutTime;
 
+    private LocalDate punchOutDate;
+
     private String status; // PRESENT, ABSENT, HALF_DAY
+
+    public String getPunchInTimeFormatted() {
+        if (punchInTime == null) {
+            return "-";
+        }
+        return punchInTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+    }
+
+    public String getPunchOutTimeFormatted() {
+        if (punchOutTime == null) {
+            return "-";
+        }
+        return punchOutTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+    }
 
     public Double getWorkingHours() {
         if (punchInTime == null || punchOutTime == null) {
             return 0.0;
         }
-        long seconds = java.time.Duration.between(punchInTime, punchOutTime).getSeconds();
+        LocalDate outDate = punchOutDate != null ? punchOutDate : date;
+        java.time.LocalDateTime start = java.time.LocalDateTime.of(date, punchInTime);
+        java.time.LocalDateTime end = java.time.LocalDateTime.of(outDate, punchOutTime);
+        if (end.isBefore(start)) {
+            return 0.0;
+        }
+        long seconds = java.time.Duration.between(start, end).getSeconds();
         return seconds / 3600.0;
     }
 
@@ -43,7 +65,13 @@ public class Attendance {
         if (punchInTime == null || punchOutTime == null) {
             return "-";
         }
-        java.time.Duration duration = java.time.Duration.between(punchInTime, punchOutTime);
+        LocalDate outDate = punchOutDate != null ? punchOutDate : date;
+        java.time.LocalDateTime start = java.time.LocalDateTime.of(date, punchInTime);
+        java.time.LocalDateTime end = java.time.LocalDateTime.of(outDate, punchOutTime);
+        if (end.isBefore(start)) {
+            return "0h 0m";
+        }
+        java.time.Duration duration = java.time.Duration.between(start, end);
         long hours = duration.toHours();
         long minutes = duration.toMinutes() % 60;
         return String.format("%dh %dm", hours, minutes);
