@@ -42,6 +42,7 @@ public class WebReportController {
         private String designation;
         private long presentCount;
         private long absentCount;
+        private long leaveCount;
         private double totalHours;
         private String formattedTotalHours;
         private double averageHours;
@@ -72,6 +73,10 @@ public class WebReportController {
                     .filter(a -> "ABSENT".equalsIgnoreCase(a.getStatus()))
                     .count();
 
+            long leave = attendanceRecords.stream()
+                    .filter(a -> "LEAVE".equalsIgnoreCase(a.getStatus()))
+                    .count();
+
             double totalHours = attendanceRecords.stream()
                     .mapToDouble(a -> a.getWorkingHours() != null ? a.getWorkingHours() : 0.0)
                     .sum();
@@ -94,6 +99,7 @@ public class WebReportController {
                     .designation(emp.getDesignation() != null ? emp.getDesignation() : "N/A")
                     .presentCount(present)
                     .absentCount(absent)
+                    .leaveCount(leave)
                     .totalHours(totalHours)
                     .formattedTotalHours(formattedTotal)
                     .averageHours(avgHours)
@@ -199,12 +205,12 @@ public class WebReportController {
 
             document.add(new com.lowagie.text.Paragraph("\n"));
 
-            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(8);
+            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(9);
             table.setWidthPercentage(100);
-            table.setWidths(new float[]{2.5f, 2f, 2f, 1.2f, 1.2f, 1.8f, 1.8f, 1.5f});
+            table.setWidths(new float[]{2.5f, 2f, 2f, 1f, 1f, 1f, 1.8f, 1.8f, 1.5f});
 
             // Set Headers
-            String[] headers = {"Employee Name", "Department", "Designation", "Present", "Absent", "Total Hours", "Avg Hours/Day", "Attendance %"};
+            String[] headers = {"Employee Name", "Department", "Designation", "Present", "Absent", "Leave", "Total Hours", "Avg Hours/Day", "Attendance %"};
             for (String header : headers) {
                 com.lowagie.text.pdf.PdfPCell headerCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(header, com.lowagie.text.FontFactory.getFont(com.lowagie.text.FontFactory.HELVETICA_BOLD, 10)));
                 headerCell.setBackgroundColor(java.awt.Color.LIGHT_GRAY);
@@ -224,6 +230,10 @@ public class WebReportController {
                 com.lowagie.text.pdf.PdfPCell c2 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(String.valueOf(dto.getAbsentCount())));
                 c2.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
                 table.addCell(c2);
+
+                com.lowagie.text.pdf.PdfPCell cLeave = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(String.valueOf(dto.getLeaveCount())));
+                cLeave.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+                table.addCell(cLeave);
 
                 com.lowagie.text.pdf.PdfPCell c3 = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(dto.getFormattedTotalHours()));
                 c3.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
@@ -277,15 +287,16 @@ public class WebReportController {
         response.setHeader("Content-Disposition", "attachment; filename=\"Work_Report_" + startDate + "_to_" + endDate + ".csv\"");
 
         PrintWriter writer = response.getWriter();
-        writer.println("Employee Name,Department,Designation,Present Days,Absent Days,Total Hours Worked,Avg Hours Per Day,Attendance %");
+        writer.println("Employee Name,Department,Designation,Present Days,Absent Days,Leave Days,Total Hours Worked,Avg Hours Per Day,Attendance %");
 
         for (EmployeeReportDto dto : reportData) {
-            writer.println(String.format("\"%s\",\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",%.1f%%",
+            writer.println(String.format("\"%s\",\"%s\",\"%s\",%d,%d,%d,\"%s\",\"%s\",%.1f%%",
                     dto.getName().replace("\"", "\"\""),
                     dto.getDepartment().replace("\"", "\"\""),
                     dto.getDesignation().replace("\"", "\"\""),
                     dto.getPresentCount(),
                     dto.getAbsentCount(),
+                    dto.getLeaveCount(),
                     dto.getFormattedTotalHours(),
                     dto.getFormattedAverageHours(),
                     dto.getAttendancePercentage()

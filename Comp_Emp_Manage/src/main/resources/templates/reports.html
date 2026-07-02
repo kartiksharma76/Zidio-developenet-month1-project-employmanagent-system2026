@@ -70,6 +70,7 @@
                             <th>Designation</th>
                             <th class="text-center">Present Days</th>
                             <th class="text-center">Absent Days</th>
+                            <th class="text-center">Leave Days</th>
                             <th class="text-center">Total Worked Hours</th>
                             <th class="text-center">Avg Hours/Day</th>
                             <th class="text-center">Attendance Rate</th>
@@ -78,7 +79,7 @@
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(reportData)}">
-                            <td colspan="9" class="text-center py-4 text-muted">
+                            <td colspan="10" class="text-center py-4 text-muted">
                                 <i class="fa-solid fa-folder-open fs-2 mb-3 opacity-50 d-block"></i>
                                 No employee report data found for this range.
                             </td>
@@ -95,6 +96,9 @@
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1" th:text="${empReport.absentCount}">0</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1" th:text="${empReport.leaveCount}">0</span>
                             </td>
                             <td class="text-center fw-medium" th:text="${empReport.formattedTotalHours}">0h 0m</td>
                             <td class="text-center text-muted" th:text="${empReport.formattedAverageHours}">0h 0m</td>
@@ -174,6 +178,7 @@
                                         <td>
                                             <span th:if="${detail.status == 'PRESENT'}" class="badge bg-success rounded-pill px-3">Present</span>
                                             <span th:if="${detail.status == 'ABSENT'}" class="badge bg-danger rounded-pill px-3">Absent</span>
+                                            <span th:if="${detail.status == 'LEAVE'}" class="badge bg-warning text-dark rounded-pill px-3">Leave</span>
                                         </td>
                                     </tr>
                                     <tr th:if="${#lists.isEmpty(empReport.attendanceDetails)}">

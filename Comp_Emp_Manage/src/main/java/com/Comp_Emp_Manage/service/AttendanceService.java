@@ -32,7 +32,7 @@ public class AttendanceService {
         Attendance attendance = Attendance.builder()
                 .employee(employee)
                 .date(today)
-                .punchInTime(LocalTime.now())
+                .punchInTime(LocalTime.now().withNano(0))
                 .status("PRESENT")
                 .build();
 
@@ -59,7 +59,7 @@ public class AttendanceService {
             }
         }
 
-        attendance.setPunchOutTime(nowDateTime.toLocalTime());
+        attendance.setPunchOutTime(nowDateTime.toLocalTime().withNano(0));
         attendance.setPunchOutDate(nowDateTime.toLocalDate());
         return attendanceRepository.save(attendance);
     }
