@@ -6,6 +6,8 @@ import com.Comp_Emp_Manage.entity.Employee;
 import com.Comp_Emp_Manage.entity.UserAuth;
 import com.Comp_Emp_Manage.enums.Role;
 import com.Comp_Emp_Manage.repository.EmployeeRepository;
+import com.Comp_Emp_Manage.repository.CloudinaryImageRepository;
+import com.Comp_Emp_Manage.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -23,6 +26,8 @@ public class WebEmployeeController {
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
+    private final CloudinaryImageRepository cloudinaryImageRepository;
 
     @GetMapping("/employees")
     public String viewEmployees(Model model, @RequestParam(value = "search", required = false) String search) {
@@ -46,8 +51,52 @@ public class WebEmployeeController {
         Employee employee = employeeRepository.findByEmail(email).orElse(null);
         if (employee != null) {
             model.addAttribute("employee", employee);
+            
+            // Fetch uploaded profile pictures for this user (take the latest one)
+            var images = cloudinaryImageRepository.findByUploadedByUsername(email);
+            if (!images.isEmpty()) {
+                var latestImage = images.get(images.size() - 1);
+                model.addAttribute("profileImageUrl", latestImage.getImageUrl());
+                model.addAttribute("profileImagePublicId", latestImage.getPublicId());
+                model.addAttribute("profileImageFilename", latestImage.getOriginalFilename());
+            }
         }
         return "profile";
+    }
+
+    @PostMapping("/profile/upload")
+    public String uploadProfilePicture(
+            @RequestParam("file") MultipartFile file,
+            org.springframework.security.core.Authentication auth,
+            RedirectAttributes redirectAttributes) {
+        try {
+            // Determine uploader role scope based on logged-in user authority
+            String roleScope = auth.getAuthorities().stream()
+                    .map(r -> r.getAuthority())
+                    .filter(r -> r.startsWith("ROLE_"))
+                    .map(r -> r.replace("ROLE_", ""))
+                    .findFirst()
+                    .orElse("PUBLIC");
+
+            cloudinaryService.uploadImageWithScope(file, roleScope);
+            redirectAttributes.addFlashAttribute("success", "Profile picture uploaded successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Upload failed: " + e.getMessage());
+        }
+        return "redirect:/profile";
+    }
+
+    @PostMapping("/profile/delete")
+    public String deleteProfilePicture(
+            @RequestParam("publicId") String publicId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            cloudinaryService.deleteImage(publicId);
+            redirectAttributes.addFlashAttribute("success", "Profile picture deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Deletion failed: " + e.getMessage());
+        }
+        return "redirect:/profile";
     }
 
     @PostMapping("/employees/add")

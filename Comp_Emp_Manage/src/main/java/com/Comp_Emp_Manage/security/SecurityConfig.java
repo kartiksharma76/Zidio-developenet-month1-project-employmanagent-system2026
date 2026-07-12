@@ -33,7 +33,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults()) // Enable CORS
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/assets/**").permitAll()
-                .requestMatchers("/login", "/register", "/forgot-password", "/forgot-password.html", "/api/v1/auth/**").permitAll() // Allow public access to login/register/forgot-password
+                .requestMatchers("/login", "/register", "/forgot-password", "/forgot-password.html", "/api/v1/auth/**", "/api/public/images/**").permitAll() // Allow public access to login/register/forgot-password & public Cloudinary endpoints
                 .anyRequest().authenticated() // Require authentication for everything else
             )
             .formLogin(form -> form

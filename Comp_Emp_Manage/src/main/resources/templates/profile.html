@@ -10,15 +10,59 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">My Profile</h2>
         </div>
+
+        <!-- Success & Error Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         
         <div class="row" th:if="${employee != null}">
             <div class="col-md-4 mb-4">
                 <div class="card border-0 shadow-sm text-center">
                     <div class="card-body p-5">
-                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3 shadow" style="width: 100px; height: 100px; font-weight: bold; font-size: 2.5rem;" th:text="${#strings.substring(employee.firstName,0,1) + #strings.substring(employee.lastName,0,1)}">JD</div>
+                        
+                        <!-- Profile Image rendering with initials fallback -->
+                        <div class="mb-3 d-flex justify-content-center">
+                            <!-- Show image only if profileImageUrl is not null and is an image -->
+                            <div th:if="${profileImageUrl != null and (#strings.endsWith(#strings.toLowerCase(profileImageUrl), '.jpg') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.jpeg') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.png') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.webp'))}">
+                                <img th:src="${profileImageUrl}" class="rounded-circle shadow border border-3 border-white" style="width: 110px; height: 110px; object-fit: cover;" alt="Profile Picture">
+                            </div>
+                            <!-- Otherwise, show initials circle -->
+                            <div th:unless="${profileImageUrl != null and (#strings.endsWith(#strings.toLowerCase(profileImageUrl), '.jpg') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.jpeg') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.png') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.webp'))}" class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center mx-auto shadow" style="width: 100px; height: 100px; font-weight: bold; font-size: 2.5rem;" th:text="${#strings.substring(employee.firstName,0,1) + #strings.substring(employee.lastName,0,1)}">JD</div>
+                        </div>
+
+                        <!-- Document Attachment Alert (if uploaded file is a PDF/Doc) -->
+                        <div th:if="${profileImageUrl != null and !(#strings.endsWith(#strings.toLowerCase(profileImageUrl), '.jpg') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.jpeg') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.png') or #strings.endsWith(#strings.toLowerCase(profileImageUrl), '.webp'))}" class="alert alert-secondary p-3 mb-3 small shadow-sm text-start">
+                            <div class="fw-bold mb-1"><i class="bi bi-file-earmark-text"></i> Attached Document:</div>
+                            <div class="text-truncate mb-2 fw-semibold" th:text="${profileImageFilename}">document.pdf</div>
+                            <a th:href="${profileImageUrl}" target="_blank" class="btn btn-sm btn-outline-dark w-100 py-1 text-center" style="font-size: 0.75rem;">View / Download</a>
+                        </div>
+
                         <h4 class="fw-bold mb-0" th:text="${employee.firstName + ' ' + employee.lastName}">John Doe</h4>
                         <p class="text-muted mb-2" th:text="${employee.department}">Engineering</p>
                         <span class="badge bg-success mb-3">Active Employee</span>
+                        
+                        <!-- Upload and Delete Document/Photo Form Controls -->
+                        <hr class="my-3 text-muted opacity-25">
+                        <div class="mt-3">
+                            <form th:action="@{/profile/upload}" method="post" enctype="multipart/form-data" class="mx-auto" style="max-width: 220px;">
+                                <div class="mb-2">
+                                    <input type="file" name="file" accept="image/png, image/jpeg, image/jpg, image/webp, application/pdf, .doc, .docx" class="form-control form-control-sm" required>
+                                    <div class="form-text small text-start">Max 5MB: JPG, PNG, WEBP, PDF, DOC, DOCX</div>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-primary w-100 mb-2 shadow-sm">Upload File</button>
+                            </form>
+                            <form th:if="${profileImageUrl != null}" th:action="@{/profile/delete}" method="post" class="mx-auto" style="max-width: 220px;">
+                                <input type="hidden" name="publicId" th:value="${profileImagePublicId}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100 shadow-sm">Delete File</button>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
             </div>

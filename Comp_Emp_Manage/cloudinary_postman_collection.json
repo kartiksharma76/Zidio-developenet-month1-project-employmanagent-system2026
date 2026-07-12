@@ -1,0 +1,706 @@
+{
+	"info": {
+		"_postman_id": "8c593f6c-6e8d-4cb0-a54f-124b17c80521",
+		"name": "Cloudinary Integration APIs",
+		"description": "Complete collection to test general, public, employee, manager, and admin Cloudinary image upload, update, delete, and view APIs in the Spring Boot 3.x application.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login to obtain JWT Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@nexushr.com\",\n    \"password\": \"admin123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticates a user and retrieves a JWT token. Update the credentials depending on who you want to log in as (Admin, Manager, Employee)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. General (Authenticated) APIs",
+			"item": [
+				{
+					"name": "Upload Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Select an image file (JPG, JPEG, PNG, WEBP; Max 5MB)",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/images/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"images",
+								"upload"
+							]
+						},
+						"description": "Upload an image with AUTHENTICATED scope. Requires a valid JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "New image file to replace the old one",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/images/update/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"images",
+								"update",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Overwrites an existing image file using its public ID. Requires JWT authorization."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/images/delete/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"images",
+								"delete",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Deletes an image from Cloudinary and clears metadata from the DB. Requires JWT authorization."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Public APIs (Unauthenticated)",
+			"item": [
+				{
+					"name": "Upload Public Image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Select an image file (JPG, JPEG, PNG, WEBP; Max 5MB)",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/public/images/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"images",
+								"upload"
+							]
+						},
+						"description": "Permits anonymous uploads. Accessible to everyone without login."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Public Images",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/public/images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"images"
+							]
+						},
+						"description": "List metadata of all images uploaded with PUBLIC scope."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Public Image Metadata",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/public/images/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"images",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Get metadata of a specific public image by public ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Public Image",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Replacement image file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/public/images/update/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"images",
+								"update",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Replace/overwrite a public image without needing authorization."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Public Image",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/public/images/delete/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"images",
+								"delete",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Delete a public image without needing authorization."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Employee Dedicated APIs",
+			"item": [
+				{
+					"name": "Employee Upload Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Image file to upload",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/employee/images/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"employee",
+								"images",
+								"upload"
+							]
+						},
+						"description": "Restricted to users with ROLE_EMPLOYEE. Uploads an image with EMPLOYEE scope."
+					},
+					"response": []
+				},
+				{
+					"name": "Employee Update Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Replacement image file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/employee/images/update/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"employee",
+								"images",
+								"update",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Restricted to ROLE_EMPLOYEE. Overwrite an employee-scoped image."
+					},
+					"response": []
+				},
+				{
+					"name": "Employee Delete Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/employee/images/delete/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"employee",
+								"images",
+								"delete",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Restricted to ROLE_EMPLOYEE. Delete an employee-scoped image."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Manager Dedicated APIs",
+			"item": [
+				{
+					"name": "Manager Upload Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Image file to upload",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/manager/images/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"manager",
+								"images",
+								"upload"
+							]
+						},
+						"description": "Restricted to ROLE_MANAGER or ROLE_HR. Uploads an image with MANAGER scope."
+					},
+					"response": []
+				},
+				{
+					"name": "Manager Update Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Replacement image file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/manager/images/update/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"manager",
+								"images",
+								"update",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Restricted to ROLE_MANAGER or ROLE_HR. Overwrite a manager-scoped image."
+					},
+					"response": []
+				},
+				{
+					"name": "Manager Delete Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/manager/images/delete/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"manager",
+								"images",
+								"delete",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Restricted to ROLE_MANAGER or ROLE_HR. Delete a manager-scoped image."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Admin Dedicated APIs",
+			"item": [
+				{
+					"name": "Admin Upload Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Image file to upload",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/images/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"images",
+								"upload"
+							]
+						},
+						"description": "Restricted to ROLE_ADMIN. Uploads an image with ADMIN scope."
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Update Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"description": "Replacement image file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/images/update/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"images",
+								"update",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Restricted to ROLE_ADMIN. Overwrite an admin-scoped image."
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Delete Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/images/delete/employee_profiles/sample_public_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"images",
+								"delete",
+								"employee_profiles",
+								"sample_public_id"
+							]
+						},
+						"description": "Restricted to ROLE_ADMIN. Delete an admin-scoped image."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:6161",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "your_jwt_token_here",
+			"type": "string"
+		}
+	]
+}
