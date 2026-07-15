@@ -4,6 +4,7 @@ import com.Comp_Emp_Manage.dto.EmployeeRegistrationDto;
 
 import com.Comp_Emp_Manage.entity.Employee;
 import com.Comp_Emp_Manage.entity.UserAuth;
+import com.Comp_Emp_Manage.entity.CloudinaryImage;
 import com.Comp_Emp_Manage.enums.Role;
 import com.Comp_Emp_Manage.repository.EmployeeRepository;
 import com.Comp_Emp_Manage.repository.CloudinaryImageRepository;
