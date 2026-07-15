@@ -54,10 +54,13 @@ public class GlobalControllerAdvice {
                 if (cloudinaryImageRepository != null) {
                     var images = cloudinaryImageRepository.findByUploadedByUsername(email);
                     if (images != null && !images.isEmpty()) {
-                        // Find latest image that is not raw (i.e. is an image)
+                        // Find latest image that is not raw (i.e. is an image) and not a document
                         for (int i = images.size() - 1; i >= 0; i--) {
                             var img = images.get(i);
                             if (img != null && img.getImageUrl() != null) {
+                                if (img.getRoleScope() != null && img.getRoleScope().startsWith("DOCUMENT_")) {
+                                    continue;
+                                }
                                 String url = img.getImageUrl().toLowerCase();
                                 if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png") || url.endsWith(".webp")) {
                                     return img.getImageUrl();

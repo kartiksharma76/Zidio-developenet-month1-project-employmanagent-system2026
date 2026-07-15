@@ -59,13 +59,22 @@ public class WebEmployeeController {
         if (employee != null) {
             model.addAttribute("employee", employee);
             
-            // Fetch uploaded profile pictures for this user (take the latest one)
+            // Fetch uploaded profile pictures for this user (take the latest one, excluding documents)
             var images = cloudinaryImageRepository.findByUploadedByUsername(email);
             if (!images.isEmpty()) {
-                var latestImage = images.get(images.size() - 1);
-                model.addAttribute("profileImageUrl", latestImage.getImageUrl());
-                model.addAttribute("profileImagePublicId", latestImage.getPublicId());
-                model.addAttribute("profileImageFilename", latestImage.getOriginalFilename());
+                CloudinaryImage latestImage = null;
+                for (int i = images.size() - 1; i >= 0; i--) {
+                    var img = images.get(i);
+                    if (img != null && (img.getRoleScope() == null || !img.getRoleScope().startsWith("DOCUMENT_"))) {
+                        latestImage = img;
+                        break;
+                    }
+                }
+                if (latestImage != null) {
+                    model.addAttribute("profileImageUrl", latestImage.getImageUrl());
+                    model.addAttribute("profileImagePublicId", latestImage.getPublicId());
+                    model.addAttribute("profileImageFilename", latestImage.getOriginalFilename());
+                }
             }
         }
         return "profile";
