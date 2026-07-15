@@ -33,4 +33,11 @@ public interface CloudinaryImageRepository extends JpaRepository<CloudinaryImage
      * @return List of image records
      */
     List<CloudinaryImage> findByRoleScope(String roleScope);
+
+    /**
+     * Retrieve all records where role scope starts with a specific prefix.
+     * @param prefix Prefix (e.g., "DOCUMENT_")
+     * @return List of matched records
+     */
+    List<CloudinaryImage> findByRoleScopeStartingWith(String prefix);
 }

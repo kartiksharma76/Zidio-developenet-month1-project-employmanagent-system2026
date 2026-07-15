@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Document Hub - NexusHR</title>
+</head>
+<body>
+    <div layout:fragment="content" class="section-bg bg-documents">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Secure Document Hub</h2>
+        </div>
+
+        <!-- Success & Error Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i> <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Upload Area (Visible to All Roles) -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                        <h5 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Document</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small mb-4">You can securely upload files (images, PDFs, or Word documents) here. Once uploaded, the document can only be accessed and managed by Administrators and Managers.</p>
+                        
+                        <form th:action="@{/documents/upload}" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Choose File</label>
+                                <input type="file" name="file" accept="image/png, image/jpeg, image/jpg, image/webp, application/pdf, .doc, .docx" class="form-control" required>
+                                <div class="form-text small text-muted">Max size: 5MB. Supported formats: JPG, PNG, WEBP, PDF, DOC, DOCX.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm py-2"><i class="fa-solid fa-paper-plane me-2"></i> Send Document</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents View Panel -->
+            <div class="col-md-8">
+                <!-- If the user is Admin or Manager, show the full list -->
+                <div th:if="${isAdminOrManager}" class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="fa-solid fa-folder-open text-warning me-2"></i> Shared Repository</h5>
+                        <span class="badge bg-primary bg-opacity-10 text-primary" th:text="${documents.size() + ' File(s)'}">0 Files</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Uploaded By</th>
+                                        <th>Upload Date</th>
+                                        <th>Format</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="doc : ${documents}">
+                                        <td class="fw-semibold text-truncate" style="max-width: 200px;">
+                                            <i class="fa-solid fa-file-invoice me-2 text-muted"></i>
+                                            <span th:text="${doc.originalFilename}">document.pdf</span>
+                                        </td>
+                                        <td th:text="${doc.uploadedByUsername}">uploader@nexushr.com</td>
+                                        <td th:text="${#temporals.format(doc.uploadTime, 'dd MMM yyyy, HH:mm')}">12 July 2026</td>
+                                        <td>
+                                            <span th:if="${doc.resourceType == 'raw'}" class="badge bg-secondary">Document</span>
+                                            <span th:unless="${doc.resourceType == 'raw'}" class="badge bg-info">Image</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a th:href="@{|/documents/download/${doc.id}|}" class="btn btn-sm btn-outline-primary me-1" title="Download">
+                                                <i class="fa-solid fa-download"></i>
+                                            </a>
+                                            <form th:action="@{|/documents/delete/${doc.id}|}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this document from the repository?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${documents.empty}">
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            <i class="fa-solid fa-box-open fa-3x mb-3 text-light"></i>
+                                            <h5>No Documents Uploaded</h5>
+                                            <p class="mb-0">Documents uploaded by any employee will appear here.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- If the user is a standard Employee, hide the list and show confidentiality statement -->
+                <div th:unless="${isAdminOrManager}" class="card border-0 shadow-sm border-start border-success border-4 h-100">
+                    <div class="card-body p-5 d-flex flex-column justify-content-center align-items-center text-center">
+                        <div class="bg-success bg-opacity-10 p-4 rounded-circle text-success mb-4">
+                            <i class="fa-solid fa-shield-halved fa-3x"></i>
+                        </div>
+                        <h4 class="fw-bold text-success mb-2">Confidential & Secure</h4>
+                        <p class="text-muted max-width-500 mb-0">Your documents are processed securely and uploaded to our encrypted cloud storage via Cloudinary. For security and privacy compliance, regular employees are not permitted to browse the document repository. Only company administrators and department managers can view or download the records.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

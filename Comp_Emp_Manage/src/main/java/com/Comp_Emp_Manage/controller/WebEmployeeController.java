@@ -31,16 +31,23 @@ public class WebEmployeeController {
 
     @GetMapping("/employees")
     public String viewEmployees(Model model, @RequestParam(value = "search", required = false) String search) {
+        var allEmployees = employeeRepository.findAll();
         if (search != null && !search.trim().isEmpty()) {
-            model.addAttribute("employees", employeeRepository.findAll().stream()
+            var filtered = allEmployees.stream()
                 .filter(e -> e.getFirstName().toLowerCase().contains(search.toLowerCase()) || 
                              e.getLastName().toLowerCase().contains(search.toLowerCase()) || 
                              e.getDepartment().toLowerCase().contains(search.toLowerCase()))
-                .toList());
+                .toList();
+            model.addAttribute("employees", filtered);
             model.addAttribute("searchQuery", search);
+            model.addAttribute("freshers", filtered.stream().filter(e -> Boolean.TRUE.equals(e.getFresher())).toList());
         } else {
-            model.addAttribute("employees", employeeRepository.findAll());
+            model.addAttribute("employees", allEmployees);
+            model.addAttribute("freshers", allEmployees.stream().filter(e -> Boolean.TRUE.equals(e.getFresher())).toList());
         }
+        long totalFreshers = allEmployees.stream().filter(e -> Boolean.TRUE.equals(e.getFresher())).count();
+        model.addAttribute("totalFreshers", totalFreshers);
+        model.addAttribute("totalEmployeesCount", allEmployees.size());
         model.addAttribute("newEmployee", new EmployeeRegistrationDto());
         return "employees";
     }
@@ -116,6 +123,7 @@ public class WebEmployeeController {
             .department(dto.getDepartment())
             .salary(dto.getSalary())
             .userAuth(userAuth)
+            .fresher(dto.getFresher() != null ? dto.getFresher() : false)
             .build();
 
         employeeRepository.save(employee);
@@ -144,6 +152,7 @@ public class WebEmployeeController {
             existingEmployee.setPhone(updatedEmployee.getPhone() != null ? updatedEmployee.getPhone() : "N/A");
             existingEmployee.setDepartment(updatedEmployee.getDepartment());
             existingEmployee.setSalary(updatedEmployee.getSalary());
+            existingEmployee.setFresher(updatedEmployee.getFresher() != null ? updatedEmployee.getFresher() : false);
             
             employeeRepository.save(existingEmployee);
             redirectAttributes.addFlashAttribute("success", "Employee updated successfully!");

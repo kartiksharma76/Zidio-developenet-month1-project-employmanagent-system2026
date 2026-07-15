@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{fragments/layout}">
 <head>
     <title>Announcements</title>
 </head>
 <body>
-    <div layout:fragment="content">
+    <div layout:fragment="content" class="section-bg bg-announcements">
         
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">Company Announcements</h2>
-            <div sec:authorize="hasRole('ROLE_ADMIN')">
+            <div sec:authorize="hasRole('ADMIN')">
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAnnouncementModal">
                     <i class="fa-solid fa-bullhorn me-2"></i> Post Announcement
                 </button>
@@ -27,7 +28,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <h5 class="card-title fw-bold text-primary" th:text="${announcement.title}">Title</h5>
-                            <div sec:authorize="hasRole('ROLE_ADMIN')">
+                            <div sec:authorize="hasRole('ADMIN')">
                                 <form th:action="@{|/announcements/delete/${announcement.id}|}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
                                 </form>
@@ -51,7 +52,7 @@
         </div>
         
         <!-- Add Announcement Modal -->
-        <div class="modal fade" id="addAnnouncementModal" tabindex="-1" aria-hidden="true" sec:authorize="hasRole('ROLE_ADMIN')">
+        <div class="modal fade" id="addAnnouncementModal" tabindex="-1" aria-hidden="true" sec:authorize="hasRole('ADMIN')">
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content border-0 shadow">
                     <div class="modal-header bg-light border-0">

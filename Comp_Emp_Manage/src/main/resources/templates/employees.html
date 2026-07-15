@@ -5,7 +5,7 @@
     <title>Employee Directory</title>
 </head>
 <body>
-    <div layout:fragment="content">
+    <div layout:fragment="content" class="section-bg bg-employees">
         
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">Employee Directory</h2>
@@ -27,52 +27,170 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <div class="card mb-4 border-0">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="px-4 py-3">Employee</th>
-                                <th class="px-4 py-3">Contact</th>
-                                <th class="px-4 py-3">Department</th>
-                                <th class="px-4 py-3">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="emp : ${employees}">
-                                <td class="px-4 py-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; font-weight: bold;" th:text="${#strings.substring(emp.firstName,0,1) + #strings.substring(emp.lastName,0,1)}">JD</div>
-                                        <div>
-                                            <div class="fw-bold" th:text="${emp.firstName + ' ' + emp.lastName}">John Doe</div>
-                                            <div class="text-muted small" th:text="'Emp ID: ' + ${emp.id}">Emp ID: 1</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div><i class="fa-solid fa-envelope text-muted me-2"></i><span th:text="${emp.email}"></span></div>
-                                    <div th:if="${emp.phone != null && emp.phone != 'N/A'}"><i class="fa-solid fa-phone text-muted me-2"></i><span th:text="${emp.phone}"></span></div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="badge bg-secondary rounded-pill px-3 py-2" th:text="${emp.department}">Department</span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <a th:href="@{|/employees/edit/${emp.id}|}" class="btn btn-sm btn-outline-primary me-2" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                    <form th:action="@{|/employees/delete/${emp.id}|}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this employee?');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <tr th:if="${employees.empty}">
-                                <td colspan="4" class="text-center py-5 text-muted">
-                                    <i class="fa-solid fa-folder-open fa-3x mb-3 text-light"></i>
-                                    <h5>No employees found</h5>
-                                    <p>Start by adding a new employee to the directory.</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm border-start border-primary border-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                    <i class="fa-solid fa-users fa-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-muted mb-1">Total Directory Strength</p>
+                                <h4 class="mb-0 fw-bold" th:text="${totalEmployeesCount}">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm border-start border-success border-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                    <i class="fa-solid fa-graduation-cap fa-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-muted mb-1">Total Freshers Employees</p>
+                                <h4 class="mb-0 fw-bold" th:text="${totalFreshers}">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Directory Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 gap-2" id="directoryTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active px-4 py-2" id="all-employees-tab" data-bs-toggle="pill" data-bs-target="#all-employees" type="button" role="tab" aria-controls="all-employees" aria-selected="true">
+                    <i class="fa-solid fa-users me-2"></i> All Employees
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link px-4 py-2" id="freshers-tab" data-bs-toggle="pill" data-bs-target="#freshers" type="button" role="tab" aria-controls="freshers" aria-selected="false">
+                    <i class="fa-solid fa-graduation-cap me-2"></i> Freshers Directory
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="directoryTabsContent">
+            <!-- All Employees Tab -->
+            <div class="tab-pane fade show active" id="all-employees" role="tabpanel" aria-labelledby="all-employees-tab">
+                <div class="card mb-4 border-0">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="px-4 py-3">Employee</th>
+                                        <th class="px-4 py-3">Contact</th>
+                                        <th class="px-4 py-3">Department</th>
+                                        <th class="px-4 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="emp : ${employees}">
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; font-weight: bold;" th:text="${#strings.substring(emp.firstName,0,1) + #strings.substring(emp.lastName,0,1)}">JD</div>
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        <span th:text="${emp.firstName + ' ' + emp.lastName}">John Doe</span>
+                                                        <span th:if="${emp.fresher}" class="badge bg-success bg-opacity-10 text-success rounded-pill ms-2 small" style="font-size: 0.7rem;"><i class="fa-solid fa-graduation-cap me-1"></i>Fresher</span>
+                                                    </div>
+                                                    <div class="text-muted small" th:text="'Emp ID: ' + ${emp.id}">Emp ID: 1</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div><i class="fa-solid fa-envelope text-muted me-2"></i><span th:text="${emp.email}"></span></div>
+                                            <div th:if="${emp.phone != null && emp.phone != 'N/A'}"><i class="fa-solid fa-phone text-muted me-2"></i><span th:text="${emp.phone}"></span></div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2" th:text="${emp.department}">Department</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <a th:href="@{|/employees/edit/${emp.id}|}" class="btn btn-sm btn-outline-primary me-2" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                                            <form th:action="@{|/employees/delete/${emp.id}|}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${employees.empty}">
+                                        <td colspan="4" class="text-center py-5 text-muted">
+                                            <i class="fa-solid fa-folder-open fa-3x mb-3 text-light"></i>
+                                            <h5>No employees found</h5>
+                                            <p>Start by adding a new employee to the directory.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Freshers Tab -->
+            <div class="tab-pane fade" id="freshers" role="tabpanel" aria-labelledby="freshers-tab">
+                <div class="card mb-4 border-0">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="px-4 py-3">Employee</th>
+                                        <th class="px-4 py-3">Contact</th>
+                                        <th class="px-4 py-3">Department</th>
+                                        <th class="px-4 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="emp : ${freshers}">
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; font-weight: bold;" th:text="${#strings.substring(emp.firstName,0,1) + #strings.substring(emp.lastName,0,1)}">JD</div>
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        <span th:text="${emp.firstName + ' ' + emp.lastName}">John Doe</span>
+                                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill ms-2 small" style="font-size: 0.7rem;"><i class="fa-solid fa-graduation-cap me-1"></i>Fresher</span>
+                                                    </div>
+                                                    <div class="text-muted small" th:text="'Emp ID: ' + ${emp.id}">Emp ID: 1</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div><i class="fa-solid fa-envelope text-muted me-2"></i><span th:text="${emp.email}"></span></div>
+                                            <div th:if="${emp.phone != null && emp.phone != 'N/A'}"><i class="fa-solid fa-phone text-muted me-2"></i><span th:text="${emp.phone}"></span></div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2" th:text="${emp.department}">Department</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <a th:href="@{|/employees/edit/${emp.id}|}" class="btn btn-sm btn-outline-primary me-2" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                                            <form th:action="@{|/employees/delete/${emp.id}|}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${freshers.empty}">
+                                        <td colspan="4" class="text-center py-5 text-muted">
+                                            <i class="fa-solid fa-graduation-cap fa-3x mb-3 text-light"></i>
+                                            <h5>No fresher employees found</h5>
+                                            <p>Fresher candidates will appear here once marked during add/edit.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -119,6 +237,12 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-muted">$</span>
                                         <input type="number" step="0.01" th:field="*{salary}" class="form-control" placeholder="Enter salary amount" required />
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch p-0 ps-4 my-2">
+                                        <input class="form-check-input" type="checkbox" th:field="*{fresher}" id="fresherCheck">
+                                        <label class="form-check-label fw-bold ms-2" for="fresherCheck">Mark as Fresher employee</label>
                                     </div>
                                 </div>
                                 <div class="col-12">

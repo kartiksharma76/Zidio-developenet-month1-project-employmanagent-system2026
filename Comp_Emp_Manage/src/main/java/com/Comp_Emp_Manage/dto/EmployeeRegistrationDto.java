@@ -12,4 +12,5 @@ public class EmployeeRegistrationDto {
     private String phone;
     private String role;
     private Double salary;
+    private Boolean fresher;
 }

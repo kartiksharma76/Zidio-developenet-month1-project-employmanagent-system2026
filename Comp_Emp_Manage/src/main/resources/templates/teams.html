@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Team Hub</title>
+</head>
+<body>
+    <div layout:fragment="content" class="section-bg bg-teams">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Team Hub</h2>
+            <div class="d-flex gap-2" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                    <i class="fa-solid fa-plus me-2"></i> Create Team
+                </button>
+                <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#assignMemberModal">
+                    <i class="fa-solid fa-user-plus me-2"></i> Assign Member
+                </button>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-circle me-2"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Teams Roster Directory Cards Grid -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-lg-4" th:each="team : ${teams}">
+                <div class="card h-100 border-start border-primary border-4 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h4 class="card-title fw-bold text-primary mb-1" th:text="${team.name}">DevOps Team</h4>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">
+                                    <i class="fa-solid fa-users me-1"></i> <span th:text="${team.members != null ? team.members.size() : 0} + ' Members'">0 Members</span>
+                                </span>
+                            </div>
+                            <div sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                                <form th:action="@{|/teams/delete/${team.id}|}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this team? All members will be unassigned.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Delete Team">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <p class="card-text text-muted mb-4 small" th:text="${team.description != null && team.description != '' ? team.description : 'No description provided.'}">No description.</p>
+                        
+                        <div class="mt-auto">
+                            <h6 class="fw-bold border-bottom pb-2 mb-2 text-secondary">
+                                <i class="fa-solid fa-user-group me-1"></i> Roster
+                            </h6>
+                            <ul class="list-group list-group-flush mb-0">
+                                <li class="list-group-item bg-transparent px-0 py-2 d-flex justify-content-between align-items-center" th:each="member : ${team.members}">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2 small" style="width: 28px; height: 28px; font-weight: bold; font-size: 0.8rem;" th:text="${#strings.substring(member.firstName,0,1) + #strings.substring(member.lastName,0,1)}">JD</div>
+                                        <span class="fw-semibold text-dark dark-text-light" th:text="${member.firstName + ' ' + member.lastName}">John Doe</span>
+                                    </div>
+                                    <div sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                                        <form th:action="@{|/teams/remove/${member.id}|}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm text-danger border-0 p-0" title="Remove from Team">
+                                                <i class="fa-solid fa-circle-xmark"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                                <li class="list-group-item bg-transparent text-center text-muted py-3 px-0 border-0 small" th:if="${team.members == null || team.members.empty}">
+                                    <i class="fa-solid fa-user-slash mb-2 text-light"></i>
+                                    <div>No assigned members</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State for Teams -->
+            <div class="col-12 text-center py-5 text-muted" th:if="${teams.empty}">
+                <i class="fa-solid fa-people-group fa-4x mb-3 text-light"></i>
+                <h3>No teams registered</h3>
+                <p>Teams created by administrators will appear here.</p>
+            </div>
+        </div>
+
+        <!-- Create Team Modal (Admin/Manager only) -->
+        <div class="modal fade" id="createTeamModal" tabindex="-1" aria-hidden="true" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold">Create New Team</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/teams/add}" method="post" th:object="${newTeam}">
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Team Name</label>
+                                    <input type="text" th:field="*{name}" class="form-control" placeholder="e.g. Frontend Engineering" required />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Description</label>
+                                    <textarea th:field="*{description}" class="form-control" placeholder="Brief details about the team's objectives..." rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i> Save Team</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign Member Modal (Admin/Manager only) -->
+        <div class="modal fade" id="assignMemberModal" tabindex="-1" aria-hidden="true" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold">Assign Employee to Team</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/teams/assign}" method="post">
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Select Employee</label>
+                                    <select name="employeeId" class="form-select" required>
+                                        <option value="" disabled selected>Choose an employee...</option>
+                                        <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.firstName + ' ' + emp.lastName + ' (' + emp.department + ')'}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Select Team</label>
+                                    <select name="teamId" class="form-select" required>
+                                        <option value="" disabled selected>Choose a team...</option>
+                                        <option th:each="t : ${teams}" th:value="${t.id}" th:text="${t.name}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-user-plus me-2"></i> Assign</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

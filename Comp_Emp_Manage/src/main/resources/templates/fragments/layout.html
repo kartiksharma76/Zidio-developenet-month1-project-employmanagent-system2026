@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,22 +38,24 @@
             color: var(--text-dark);
         }
 
-        /* Sidebar Styling */
+        /* Sidebar Styling (Solid Premium Dark) */
         #sidebar {
             width: var(--sidebar-width);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            background: #1e293b;
-            color: white;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
+            border-right: 1px solid #1e293b !important;
+            color: #cbd5e1;
             transition: all 0.3s;
             z-index: 1000;
         }
 
         #sidebar .sidebar-header {
             padding: 20px;
-            background: #0f172a;
+            background: #020617 !important;
+            border-bottom: 1px solid #1e293b !important;
             text-align: center;
         }
 
@@ -67,13 +69,17 @@
             display: block;
             color: #cbd5e1;
             text-decoration: none;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            border-radius: 12px 2px 12px 2px !important;
+            margin: 6px 12px;
         }
 
         #sidebar ul li a:hover, #sidebar ul li.active > a {
-            color: white;
-            background: var(--primary-color);
-            border-left: 4px solid white;
+            color: white !important;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+            border-left: none !important;
+            transform: translateX(4px) !important;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
         }
 
         #sidebar ul li a i {
@@ -147,20 +153,382 @@
             border-color: var(--primary-hover);
         }
 
-        /* Responsive */
+        /* Responsive Off-Canvas Sidebar & Content Overlay */
         @media (max-width: 768px) {
             #sidebar {
-                margin-left: calc(var(--sidebar-width) * -1);
+                margin-left: calc(var(--sidebar-width) * -1) !important;
+                z-index: 1050 !important;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3) !important;
             }
             #sidebar.active {
-                margin-left: 0;
+                margin-left: 0 !important;
             }
             #main-content {
-                width: 100%;
+                width: 100% !important;
+                position: relative !important;
+                left: 0 !important;
+                right: 0 !important;
+                padding: 15px !important;
             }
             #main-content.active {
-                width: calc(100% - var(--sidebar-width));
+                width: 100% !important; /* Retain full width to prevent squishing on mobile */
             }
+            
+            /* Compact titles on mobile */
+            #main-content h2:first-of-type,
+            #main-content .page-title {
+                font-size: 1.7rem !important;
+                margin-bottom: 20px !important;
+            }
+        }
+
+        /* Dynamic Background & Glassmorphism styles on main-content */
+        #main-content {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            padding: 25px;
+            transition: all 0.3s;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('/assets/zidio-bg.png');
+        }
+
+        body.dark-mode #main-content {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('/assets/zidio-bg.png');
+        }
+
+        /* Specific section background images on main-content with Light Mode Overlay */
+        #main-content.bg-dashboard {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-employees {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-announcements {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-assets {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-expenses {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-attendance {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-leave {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-payroll {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-performance {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-reports {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-ai-insights {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-documents {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-profile {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80');
+        }
+        #main-content.bg-teams {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.45), rgba(248, 250, 252, 0.45)), url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80');
+        }
+
+        /* Specific section background images on main-content with Dark Mode Overlay */
+        body.dark-mode #main-content.bg-dashboard {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-employees {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-announcements {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-assets {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-expenses {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-attendance {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-leave {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-payroll {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-performance {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-reports {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-ai-insights {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-documents {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-profile {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80');
+        }
+        body.dark-mode #main-content.bg-teams {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80');
+        }
+
+        /* Solid Navbar overriding normal styles */
+        .navbar {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        body.dark-mode .navbar {
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+        }
+
+        .card {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 32px 6px 32px 6px !important; /* Premium custom beveled/asymmetrical shape */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) !important;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+            border-color: rgba(59, 130, 246, 0.4) !important;
+        }
+
+        body.dark-mode .card {
+            background-color: #1e293b !important;
+            border: 1px solid #334155 !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        body.dark-mode .card:hover {
+            border-color: rgba(96, 165, 250, 0.35) !important;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        /* Unified Tilted Corner Accents for Buttons and Inputs */
+        .btn {
+            border-radius: 12px 3px 12px 3px !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px 2px 10px 2px !important;
+        }
+
+        /* Beautiful Page & Section Headers Styling */
+        #main-content h2:first-of-type,
+        #main-content .page-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 28px;
+            letter-spacing: -0.5px;
+            text-transform: capitalize;
+            position: relative;
+            display: inline-block;
+        }
+        
+        body.dark-mode #main-content h2:first-of-type,
+        body.dark-mode #main-content .page-title {
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Elegant decorative accent line under headings */
+        #main-content h2:first-of-type::after,
+        #main-content .page-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -6px;
+            width: 45px;
+            height: 4px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+        
+        body.dark-mode #main-content h2:first-of-type::after,
+        body.dark-mode #main-content .page-title::after {
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        }
+
+        .table {
+            background-color: transparent !important;
+        }
+        .table th, .table td {
+            background-color: transparent !important;
+        }
+
+        /* Comprehensive Dark Mode Typography & Theme overrides */
+        body.dark-mode {
+            color: #f8fafc !important;
+        }
+        
+        /* Force clear high-contrast white text in dark mode inside the content wrapper */
+        body.dark-mode #main-content,
+        body.dark-mode #main-content h1,
+        body.dark-mode #main-content h2,
+        body.dark-mode #main-content h3,
+        body.dark-mode #main-content h4,
+        body.dark-mode #main-content h5,
+        body.dark-mode #main-content h6,
+        body.dark-mode #main-content label,
+        body.dark-mode #main-content th,
+        body.dark-mode #main-content td,
+        body.dark-mode #main-content span:not(.badge),
+        body.dark-mode #main-content strong,
+        body.dark-mode #main-content p,
+        body.dark-mode #main-content small,
+        body.dark-mode #main-content i {
+            color: #f8fafc !important;
+        }
+        
+        /* Subtle muted text in dark mode */
+        body.dark-mode #main-content .text-muted {
+            color: #cbd5e1 !important;
+        }
+        
+        /* Card specific overrides */
+        body.dark-mode #main-content .card-title,
+        body.dark-mode #main-content .card-text {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode #main-content .table {
+            color: #f8fafc !important;
+        }
+        
+        body.dark-mode #main-content .table th {
+            color: #ffffff !important;
+        }
+        
+        /* Form inputs in dark mode */
+        body.dark-mode #main-content .form-control,
+        body.dark-mode #main-content .form-select {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode #main-content .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+        
+        /* Modals inside dark mode */
+        body.dark-mode .modal-content {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        body.dark-mode .modal-header,
+        body.dark-mode .modal-footer {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        body.dark-mode .modal-title,
+        body.dark-mode .modal-header h5 {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .modal-content label {
+            color: #f8fafc !important;
+        }
+        
+        body.dark-mode .modal-content .form-control,
+        body.dark-mode .modal-content .form-select {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode .modal-content .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .table {
+            background-color: transparent !important;
+        }
+        .table th, .table td {
+            background-color: transparent !important;
+        }
+
+        /* Beautiful Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.01);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.35);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.6);
+        }
+
+        /* Butter-Smooth Fade-in Animation for Page Content */
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #main-content {
+            animation: pageFadeIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Interactive Hover transitions on all tables */
+        .table tbody tr {
+            transition: all 0.25s ease !important;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.04) !important;
+            transform: scale(1.004) translateZ(0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+        body.dark-mode .table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Fix Bootstrap Modal Stacking Context Glitch (Brings modal input content above backdrop) */
+        .modal {
+            background: rgba(0, 0, 0, 0.5) !important;
+        }
+        .modal-backdrop {
+            display: none !important;
         }
     </style>
 </head>
@@ -178,8 +546,17 @@
                 <li th:classappend="${currentUri == '/dashboard' ? 'active' : ''}">
                     <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
                 </li>
-                <li th:classappend="${currentUri == '/employees' ? 'active' : ''}" sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')">
+                <li th:classappend="${currentUri == '/profile' ? 'active' : ''}">
+                    <a href="/profile"><i class="fa-solid fa-user-gear"></i> My Profile</a>
+                </li>
+                <li th:classappend="${currentUri == '/documents' ? 'active' : ''}">
+                    <a href="/documents"><i class="fa-solid fa-file-shield"></i> Document Hub</a>
+                </li>
+                <li th:classappend="${currentUri == '/employees' ? 'active' : ''}" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
                     <a href="/employees"><i class="fa-solid fa-users"></i> Employee Directory</a>
+                </li>
+                <li th:classappend="${currentUri == '/teams' ? 'active' : ''}">
+                    <a href="/teams"><i class="fa-solid fa-people-group"></i> Team Hub</a>
                 </li>
                 <li th:classappend="${currentUri == '/announcements' ? 'active' : ''}">
                     <a href="/announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
@@ -196,16 +573,16 @@
                 <li th:classappend="${currentUri == '/leave' ? 'active' : ''}">
                     <a href="/leave"><i class="fa-solid fa-calendar-alt"></i> Leave Requests</a>
                 </li>
-                <li th:classappend="${currentUri == '/payroll' ? 'active' : ''}" sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')">
+                <li th:classappend="${currentUri == '/payroll' ? 'active' : ''}" sec:authorize="hasAnyRole('ADMIN', 'EMPLOYEE')">
                     <a href="/payroll"><i class="fa-solid fa-file-invoice-dollar"></i> Payroll</a>
                 </li>
                 <li th:classappend="${currentUri == '/performance' ? 'active' : ''}">
                     <a href="/performance"><i class="fa-solid fa-star"></i> Performance</a>
                 </li>
-                <li th:classappend="${currentUri == '/reports' ? 'active' : ''}" sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')">
+                <li th:classappend="${currentUri == '/reports' ? 'active' : ''}" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
                     <a href="/reports"><i class="fa-solid fa-file-invoice"></i> Work Reports</a>
                 </li>
-                <li th:classappend="${currentUri == '/ai-insights' ? 'active' : ''}" sec:authorize="hasRole('ROLE_ADMIN')">
+                <li th:classappend="${currentUri == '/ai-insights' ? 'active' : ''}" sec:authorize="hasRole('ADMIN')">
                     <a href="/ai-insights"><i class="fa-solid fa-brain"></i> AI Insights</a>
                 </li>
             </ul>
@@ -218,7 +595,7 @@
         </nav>
 
         <!-- Page Content -->
-        <div id="main-content" class="p-4">
+        <div id="main-content" class="p-4" th:classappend="${bodyClass}">
             
             <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-light">
@@ -229,7 +606,11 @@
                     </button>
                     
                     <div class="ms-auto d-flex align-items-center">
-                        <span class="me-3 fw-bold" th:text="${#authentication.name}">User</span>
+                        <a href="/profile" class="me-3 fw-bold text-decoration-none d-flex align-items-center" style="color: inherit !important;">
+                            <img th:if="${globalProfileImageUrl != null}" th:src="${globalProfileImageUrl}" class="rounded-circle me-2 border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" alt="Avatar">
+                            <i th:unless="${globalProfileImageUrl != null}" class="fa-solid fa-user-circle me-2 fa-lg"></i>
+                            <span th:text="${#authentication.name}">User</span>
+                        </a>
                         <button class="btn btn-outline-secondary rounded-circle me-3" id="themeToggle" style="width: 40px; height: 40px;">
                             <i class="fa-solid fa-moon"></i>
                         </button>
@@ -270,10 +651,26 @@
             
             // Sidebar Toggle
             const sidebarCollapse = document.getElementById('sidebarCollapse');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
             if(sidebarCollapse) {
-                sidebarCollapse.addEventListener('click', function () {
-                    document.getElementById('sidebar').classList.toggle('active');
-                    document.getElementById('main-content').classList.toggle('active');
+                sidebarCollapse.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    mainContent.classList.toggle('active');
+                });
+            }
+
+            // Mobile Auto-Close Sidebar on Content Click
+            if (mainContent) {
+                mainContent.addEventListener('click', function (e) {
+                    if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('active')) {
+                        if (e.target !== sidebarCollapse && !sidebarCollapse.contains(e.target)) {
+                            sidebar.classList.remove('active');
+                            mainContent.classList.remove('active');
+                        }
+                    }
                 });
             }
 

@@ -37,6 +37,14 @@ public class Employee {
     private LocalDate joiningDate;
     private Double salary;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean fresher = false;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "team_id")
+    private Team team;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_auth_id", referencedColumnName = "id", unique = true)
     private UserAuth userAuth;
