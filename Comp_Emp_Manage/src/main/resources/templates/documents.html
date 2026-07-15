@@ -77,6 +77,11 @@
                                             <span th:unless="${doc.resourceType == 'raw'}" class="badge bg-info">Image</span>
                                         </td>
                                         <td class="text-end">
+                                            <!-- View in Browser -->
+                                            <a th:href="${doc.imageUrl}" target="_blank" class="btn btn-sm btn-outline-success me-1" title="View in Browser">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                            <!-- Download File -->
                                             <a th:href="@{|/documents/download/${doc.id}|}" class="btn btn-sm btn-outline-primary me-1" title="Download">
                                                 <i class="fa-solid fa-download"></i>
                                             </a>
