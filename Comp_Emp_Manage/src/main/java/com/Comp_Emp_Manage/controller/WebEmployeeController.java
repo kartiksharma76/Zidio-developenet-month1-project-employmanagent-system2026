@@ -59,15 +59,18 @@ public class WebEmployeeController {
         if (employee != null) {
             model.addAttribute("employee", employee);
             
-            // Fetch uploaded profile pictures for this user (take the latest one, excluding documents)
+            // Fetch uploaded profile pictures for this user (take the latest one that is a valid image format)
             var images = cloudinaryImageRepository.findByUploadedByUsername(email);
             if (!images.isEmpty()) {
                 CloudinaryImage latestImage = null;
                 for (int i = images.size() - 1; i >= 0; i--) {
                     var img = images.get(i);
-                    if (img != null && (img.getRoleScope() == null || !img.getRoleScope().startsWith("DOCUMENT_"))) {
-                        latestImage = img;
-                        break;
+                    if (img != null && img.getImageUrl() != null && (img.getRoleScope() == null || !img.getRoleScope().startsWith("DOCUMENT_"))) {
+                        String url = img.getImageUrl().toLowerCase();
+                        if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png") || url.endsWith(".webp")) {
+                            latestImage = img;
+                            break;
+                        }
                     }
                 }
                 if (latestImage != null) {
@@ -86,6 +89,22 @@ public class WebEmployeeController {
             org.springframework.security.core.Authentication auth,
             RedirectAttributes redirectAttributes) {
         try {
+            String contentType = file.getContentType();
+            String filename = file.getOriginalFilename();
+            boolean isImage = false;
+            
+            if (contentType != null) {
+                isImage = contentType.startsWith("image/");
+            } else if (filename != null) {
+                String nameLower = filename.toLowerCase();
+                isImage = nameLower.endsWith(".jpg") || nameLower.endsWith(".jpeg") || nameLower.endsWith(".png") || nameLower.endsWith(".webp");
+            }
+            
+            if (!isImage) {
+                redirectAttributes.addFlashAttribute("error", "Only image files (JPG, PNG, WEBP) are allowed as profile pictures!");
+                return "redirect:/profile";
+            }
+
             // Determine uploader role scope based on logged-in user authority
             String roleScope = auth.getAuthorities().stream()
                     .map(r -> r.getAuthority())
