@@ -21,18 +21,119 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Action Buttons for Employee -->
-    <div th:if="${!isAdminOrManager}" class="mb-4 d-flex gap-3">
-        <form th:action="@{/attendance/punch-in}" method="post">
-            <button type="submit" class="btn btn-success px-4 py-2 shadow-sm rounded-pill">
-                <i class="fa-solid fa-sign-in-alt me-2"></i> Punch In
-            </button>
+    <!-- Biometric Face / Normal Panel for Employee & Admin -->
+    <div th:if="${employee != null}" class="row mb-4">
+        <!-- Hidden forms for standard punching -->
+        <form id="punchInForm" th:action="@{/attendance/punch-in}" method="post" style="display:none;">
+            <input type="hidden" name="faceVector" id="punchInFaceVector" />
         </form>
-        <form th:action="@{/attendance/punch-out}" method="post">
-            <button type="submit" class="btn btn-danger px-4 py-2 shadow-sm rounded-pill">
-                <i class="fa-solid fa-sign-out-alt me-2"></i> Punch Out
-            </button>
+        <form id="punchOutForm" th:action="@{/attendance/punch-out}" method="post" style="display:none;">
+            <input type="hidden" name="faceVector" id="punchOutFaceVector" />
         </form>
+
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 p-4 text-center bg-white">
+                <h5 class="fw-bold text-primary mb-3">
+                    <i class="fa-solid fa-fingerprint me-2"></i> Attendance Punch Panel
+                </h5>
+
+                <!-- Mode Selector -->
+                <div class="btn-group mb-3 w-100" role="group" aria-label="Punch Mode">
+                    <input type="radio" class="btn-check" name="punchMode" id="modeNormal" autocomplete="off" checked onclick="togglePunchMode('NORMAL')">
+                    <label class="btn btn-outline-primary" for="modeNormal"><i class="fa-solid fa-keyboard me-1"></i> Normal Punch</label>
+
+                    <input type="radio" class="btn-check" name="punchMode" id="modeBiometric" autocomplete="off" onclick="togglePunchMode('BIOMETRIC')">
+                    <label class="btn btn-outline-primary" for="modeBiometric"><i class="fa-solid fa-face-smile me-1"></i> Face Punch</label>
+                </div>
+
+                <!-- 1. Normal Punch Container (Visible by default) -->
+                <div id="normalPunchContainer">
+                    <p class="text-muted small mb-3">Use standard buttons to record your attendance without face recognition.</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button type="button" class="btn btn-success px-4 py-2 w-50 shadow-sm rounded-pill" onclick="document.getElementById('punchInForm').submit()">
+                            <i class="fa-solid fa-sign-in-alt me-1"></i> Punch In
+                        </button>
+                        <button type="button" class="btn btn-danger px-4 py-2 w-50 shadow-sm rounded-pill" onclick="document.getElementById('punchOutForm').submit()">
+                            <i class="fa-solid fa-sign-out-alt me-1"></i> Punch Out
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Biometric Punch Container (Hidden by default) -->
+                <div id="biometricPunchContainer" style="display: none;">
+                    
+                    <!-- Case A: Face Not Registered or Rejected -->
+                    <div th:if="${employee.faceStatus == null or employee.faceStatus == 'REJECTED'}">
+                        <p class="text-muted small">Please register your face to enable biometric punch-in and punch-out.</p>
+                        <div class="position-relative mx-auto mb-3" style="width: 280px; height: 210px;">
+                            <video id="webcam" width="280" height="210" autoplay muted class="rounded-3 border border-secondary shadow-sm bg-dark" style="object-fit: cover;"></video>
+                            <div id="loadingStatus" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 rounded-3 d-flex flex-column align-items-center justify-content-center text-white">
+                                <div class="spinner-border text-primary mb-2" role="status"></div>
+                                <span class="small">Initializing Face AI...</span>
+                            </div>
+                        </div>
+                        <form id="faceRegisterForm" th:action="@{/attendance/register-face}" method="post">
+                            <input type="hidden" name="facePhoto" id="facePhotoField" />
+                            <input type="hidden" name="faceVector" id="faceVectorField" />
+                            <button type="button" id="btnAction" class="btn btn-primary px-4 py-2 w-100 shadow-sm rounded-pill" disabled onclick="registerFace()">
+                                <i class="fa-solid fa-camera me-2"></i> Register Face
+                            </button>
+                        </form>
+                        <div th:if="${employee.faceStatus == 'REJECTED'}" class="alert alert-danger mt-3 py-2 small" role="alert">
+                            Your previous registration was rejected. Please try again.
+                        </div>
+                    </div>
+
+                    <!-- Case B: Face Pending Approval -->
+                    <div th:if="${employee.faceStatus == 'PENDING'}">
+                        <div class="py-4">
+                            <i class="fa-solid fa-user-clock fs-1 text-warning mb-3 opacity-75"></i>
+                            <h6 class="fw-bold text-dark">Awaiting Admin Approval</h6>
+                            <p class="text-muted small px-3">Your face profile is pending review. Please use the "Normal Punch" tab for now.</p>
+                        </div>
+                    </div>
+
+                    <!-- Case C: Face Registration Approved -->
+                    <div th:if="${employee.faceStatus == 'APPROVED'}">
+                        <p class="text-muted small">Show your face to the camera to verify your identity.</p>
+                        <div class="position-relative mx-auto mb-3" style="width: 280px; height: 210px;">
+                            <video id="webcam" width="280" height="210" autoplay muted class="rounded-3 border border-secondary shadow-sm bg-dark" style="object-fit: cover;"></video>
+                            <div id="loadingStatus" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 rounded-3 d-flex flex-column align-items-center justify-content-center text-white">
+                                <div class="spinner-border text-primary mb-2" role="status"></div>
+                                <span class="small">Initializing Face AI...</span>
+                            </div>
+                            <div id="matchSuccessBadge" class="position-absolute bottom-0 start-50 translate-middle-x mb-2 bg-success text-white px-3 py-1 rounded-pill small shadow" style="display:none; z-index: 10;">
+                                <i class="fa-solid fa-circle-check me-1"></i> Verified
+                            </div>
+                        </div>
+                        <!-- Hidden Div to pass Approved Vector to JS -->
+                        <div id="approvedVector" th:data-vector="${employee.faceVector}" style="display:none;"></div>
+                        
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" id="btnPunchIn" class="btn btn-success px-4 py-2 w-50 shadow-sm rounded-pill" disabled onclick="verifyAndPunch('IN')">
+                                <i class="fa-solid fa-sign-in-alt me-1"></i> Face Punch In
+                            </button>
+                            <button type="button" id="btnPunchOut" class="btn btn-danger px-4 py-2 w-50 shadow-sm rounded-pill" disabled onclick="verifyAndPunch('OUT')">
+                                <i class="fa-solid fa-sign-out-alt me-1"></i> Face Punch Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biometric Guidelines -->
+        <div class="col-12 col-md-6 col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-column justify-content-center">
+                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-circle-info me-2 text-primary"></i> Guidelines & Instructions</h5>
+                <ul class="text-muted small ps-3">
+                    <li class="mb-2"><strong>Punch Modes:</strong> Choose <strong>Normal Punch</strong> to log in with one click, or <strong>Face Punch</strong> for biometric security.</li>
+                    <li class="mb-2">Ensure your face is well-lit and clearly visible in the camera frame during face registration and face verify.</li>
+                    <li class="mb-2">Do not wear hats, sunglasses, or heavy masks during capture or verification.</li>
+                    <li class="mb-2">Hold still for 2-3 seconds while the system performs the scan.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <!-- Attendance Table -->
@@ -103,6 +204,207 @@
             </div>
         </div>
     </div>
+
+    <!-- Add face-api.js and camera verification logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script>
+        const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/';
+        let video = null;
+        let loadingStatus = null;
+        let btnAction = null;
+        let btnPunchIn = null;
+        let btnPunchOut = null;
+        
+        let loadedModels = false;
+        let streamObj = null;
+
+        function togglePunchMode(mode) {
+            if (mode === 'NORMAL') {
+                document.getElementById('normalPunchContainer').style.display = 'block';
+                document.getElementById('biometricPunchContainer').style.display = 'none';
+                stopCamera();
+            } else {
+                document.getElementById('normalPunchContainer').style.display = 'none';
+                document.getElementById('biometricPunchContainer').style.display = 'block';
+                startBiometricFlow();
+            }
+        }
+
+        function stopCamera() {
+            if (streamObj) {
+                streamObj.getTracks().forEach(track => track.stop());
+                streamObj = null;
+            }
+            if (video) {
+                video.srcObject = null;
+            }
+        }
+
+        function startBiometricFlow() {
+            video = document.getElementById('webcam');
+            loadingStatus = document.getElementById('loadingStatus');
+            btnAction = document.getElementById('btnAction');
+            btnPunchIn = document.getElementById('btnPunchIn');
+            btnPunchOut = document.getElementById('btnPunchOut');
+
+            if (!video) return;
+
+            if (loadedModels) {
+                startCamera();
+            } else {
+                if (loadingStatus) {
+                    loadingStatus.style.display = 'flex';
+                    loadingStatus.innerHTML = '<div class="spinner-border text-primary mb-2" role="status"></div><span class="small">Loading Face AI Models...</span>';
+                }
+                Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]).then(() => {
+                    loadedModels = true;
+                    startCamera();
+                }).catch(err => {
+                    console.error("Failed to load Face AI models", err);
+                    if (loadingStatus) {
+                        loadingStatus.innerHTML = '<span class="text-danger small"><i class="fa-solid fa-times-circle me-1"></i> Failed to load AI. Please check internet connection.</span>';
+                    }
+                });
+            }
+        }
+
+        function startCamera() {
+            if (!video) return;
+            
+            navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+                .then(stream => {
+                    streamObj = stream;
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        if (loadingStatus) loadingStatus.style.display = 'none';
+                        if (btnAction) btnAction.disabled = false;
+                        if (btnPunchIn) btnPunchIn.disabled = false;
+                        if (btnPunchOut) btnPunchOut.disabled = false;
+                    };
+                })
+                .catch(err => {
+                    console.error("Webcam access denied", err);
+                    if (loadingStatus) {
+                        loadingStatus.innerHTML = '<span class="text-danger small"><i class="fa-solid fa-video-slash me-1"></i> Camera blocked. Please allow camera permissions.</span>';
+                    }
+                });
+        }
+
+        async function registerFace() {
+            if (!loadedModels || !video) return;
+            
+            btnAction.disabled = true;
+            btnAction.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Scanning Face...';
+            
+            try {
+                const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+                if (detection) {
+                    // Extract face descriptor
+                    const descriptor = Array.from(detection.descriptor);
+                    document.getElementById('faceVectorField').value = JSON.stringify(descriptor);
+
+                    // Capture snapshot of face
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const photoBase64 = canvas.toDataURL('image/jpeg');
+                    document.getElementById('facePhotoField').value = photoBase64;
+
+                    // Stop camera before submit
+                    stopCamera();
+
+                    // Submit form
+                    document.getElementById('faceRegisterForm').submit();
+                } else {
+                    alert("No face detected! Please center your face in the video frame and ensure good lighting.");
+                    btnAction.disabled = false;
+                    btnAction.innerHTML = '<i class="fa-solid fa-camera me-2"></i> Register Face';
+                }
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred during face scan. Please try again.");
+                btnAction.disabled = false;
+                btnAction.innerHTML = '<i class="fa-solid fa-camera me-2"></i> Register Face';
+            }
+        }
+
+        async function verifyAndPunch(actionType) {
+            if (!loadedModels || !video) return;
+
+            const btn = actionType === 'IN' ? btnPunchIn : btnPunchOut;
+            const otherBtn = actionType === 'IN' ? btnPunchOut : btnPunchIn;
+
+            btn.disabled = true;
+            otherBtn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Verifying...';
+
+            try {
+                // Get approved descriptor from DOM
+                const approvedVectorStr = document.getElementById('approvedVector').getAttribute('data-vector');
+                if (!approvedVectorStr) {
+                    alert("No approved face profile found on server.");
+                    resetVerifyButtons(actionType);
+                    return;
+                }
+                const approvedVector = JSON.parse(approvedVectorStr);
+                const approvedDescriptor = new Float32Array(approvedVector);
+
+                const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+                if (detection) {
+                    const liveDescriptor = detection.descriptor;
+                    const distance = faceapi.euclideanDistance(approvedDescriptor, liveDescriptor);
+                    
+                    // Match threshold: < 0.50 Euclidean Distance is highly accurate
+                    if (distance < 0.50) {
+                        document.getElementById('matchSuccessBadge').style.display = 'block';
+                        
+                        // Stop camera before submit
+                        stopCamera();
+
+                        setTimeout(() => {
+                            if (actionType === 'IN') {
+                                document.getElementById('punchInFaceVector').value = JSON.stringify(Array.from(liveDescriptor));
+                                document.getElementById('punchInForm').submit();
+                            } else {
+                                document.getElementById('punchOutFaceVector').value = JSON.stringify(Array.from(liveDescriptor));
+                                document.getElementById('punchOutForm').submit();
+                            }
+                        }, 800);
+                    } else {
+                        alert("Face verification failed! Face does not match the registered profile.");
+                        resetVerifyButtons(actionType);
+                    }
+                } else {
+                    alert("No face detected! Please look directly at the camera with clear lighting.");
+                    resetVerifyButtons(actionType);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred during verification. Please try again.");
+                resetVerifyButtons(actionType);
+            }
+        }
+
+        function resetVerifyButtons(actionType) {
+            if (btnPunchIn) {
+                btnPunchIn.disabled = false;
+                btnPunchIn.innerHTML = '<i class="fa-solid fa-sign-in-alt me-1"></i> Face Punch In';
+            }
+            if (btnPunchOut) {
+                btnPunchOut.disabled = false;
+                btnPunchOut.innerHTML = '<i class="fa-solid fa-sign-out-alt me-1"></i> Face Punch Out';
+            }
+        }
+
+        // Make sure we stop camera if user leaves tab
+        window.addEventListener('beforeunload', stopCamera);
+    </script>
 
     </div>
 </body>

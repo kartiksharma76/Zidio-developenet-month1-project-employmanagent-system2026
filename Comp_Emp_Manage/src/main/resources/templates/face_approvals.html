@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Face Registration Approvals - NexusHR</title>
+</head>
+<body>
+
+    <div layout:fragment="content" class="section-bg bg-reports">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2 text-primary fw-bold">Face Registration Approvals</h1>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Approvals List -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+            <h5 class="mb-0 text-primary fw-bold">
+                <i class="fa-solid fa-user-check me-2"></i> Pending Biometric Face Registrations
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row" th:if="${#lists.isEmpty(pendingEmployees)}">
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fa-solid fa-face-smile-wink fs-1 mb-3 opacity-50 d-block text-primary"></i>
+                    <h5 class="fw-semibold">All caught up!</h5>
+                    <p class="mb-0">No pending face registration approvals at the moment.</p>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:unless="${#lists.isEmpty(pendingEmployees)}">
+                <div class="col" th:each="emp : ${pendingEmployees}">
+                    <div class="card h-100 shadow-sm border rounded-4 overflow-hidden position-relative">
+                        <!-- Card Image -->
+                        <div class="bg-light text-center border-bottom d-flex align-items-center justify-content-center" style="height: 240px; overflow: hidden;">
+                            <img th:if="${emp.facePhoto != null}" th:src="${emp.facePhoto}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Face Photo" />
+                            <div th:unless="${emp.facePhoto != null}" class="text-muted py-5">
+                                <i class="fa-solid fa-user-slash fs-1 opacity-25"></i>
+                                <span class="d-block mt-2">No photo available</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body p-3">
+                            <h5 class="card-title fw-bold text-dark mb-1" th:text="${emp.firstName + ' ' + emp.lastName}"></h5>
+                            <p class="card-text text-muted mb-2 small">
+                                <i class="fa-solid fa-building me-1"></i> <span th:text="${emp.department != null ? emp.department : 'N/A'}"></span> &nbsp;|&nbsp;
+                                <i class="fa-solid fa-id-badge me-1"></i> <span th:text="${emp.designation != null ? emp.designation : 'N/A'}"></span>
+                            </p>
+                            <p class="card-text text-muted mb-3 small">
+                                <i class="fa-solid fa-envelope me-1"></i> <span th:text="${emp.email}"></span>
+                            </p>
+
+                            <!-- Actions -->
+                            <div class="d-flex gap-2 justify-content-end mt-2 pt-2 border-top">
+                                <form th:action="@{/attendance/face-reject}" method="post" class="m-0">
+                                    <input type="hidden" name="employeeId" th:value="${emp.id}" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
+                                        <i class="fa-solid fa-times me-1"></i> Reject
+                                    </button>
+                                </form>
+                                <form th:action="@{/attendance/face-approve}" method="post" class="m-0">
+                                    <input type="hidden" name="employeeId" th:value="${emp.id}" />
+                                    <button type="submit" class="btn btn-primary btn-sm px-3 rounded-pill">
+                                        <i class="fa-solid fa-check me-1"></i> Approve
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+</body>
+</html>

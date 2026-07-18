@@ -19,6 +19,8 @@ public class AttendanceService {
     private final EmployeeRepository employeeRepository;
 
     public Attendance checkIn(Long employeeId) {
+        autoPunchOutPreviousDaysForEmployee(employeeId);
+
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
@@ -40,6 +42,8 @@ public class AttendanceService {
     }
 
     public Attendance checkOut(Long employeeId) {
+        autoPunchOutPreviousDaysForEmployee(employeeId);
+
         Attendance attendance = attendanceRepository.findFirstByEmployeeIdAndPunchOutTimeIsNullOrderByDateDesc(employeeId)
                 .orElseThrow(() -> new RuntimeException("No active check-in record found. Please punch in first."));
 
@@ -65,10 +69,45 @@ public class AttendanceService {
     }
 
     public List<Attendance> getAllAttendance() {
+        autoPunchOutPreviousDays();
         return attendanceRepository.findAll();
     }
 
     public List<Attendance> getAttendanceByEmployeeId(Long employeeId) {
+        autoPunchOutPreviousDaysForEmployee(employeeId);
         return attendanceRepository.findByEmployeeId(employeeId);
+    }
+
+    public void autoPunchOutPreviousDays() {
+        LocalDate today = LocalDate.now();
+        List<Attendance> openRecords = attendanceRepository.findByPunchOutTimeIsNullAndDateLessThan(today);
+        for (Attendance record : openRecords) {
+            autoPunchOutRecord(record);
+        }
+    }
+
+    public void autoPunchOutPreviousDaysForEmployee(Long employeeId) {
+        LocalDate today = LocalDate.now();
+        List<Attendance> openRecords = attendanceRepository.findByEmployeeIdAndPunchOutTimeIsNullAndDateLessThan(employeeId, today);
+        for (Attendance record : openRecords) {
+            autoPunchOutRecord(record);
+        }
+    }
+
+    private void autoPunchOutRecord(Attendance record) {
+        LocalTime punchIn = record.getPunchInTime();
+        if (punchIn != null) {
+            LocalTime punchOut = punchIn.plusHours(9);
+            LocalDate punchOutDate = record.getDate();
+            if (punchOut.isBefore(punchIn)) {
+                punchOutDate = punchOutDate.plusDays(1);
+            }
+            record.setPunchOutTime(punchOut);
+            record.setPunchOutDate(punchOutDate);
+        } else {
+            record.setPunchOutTime(LocalTime.of(18, 0, 0));
+            record.setPunchOutDate(record.getDate());
+        }
+        attendanceRepository.save(record);
     }
 }

@@ -50,6 +50,21 @@
             color: #cbd5e1;
             transition: all 0.3s;
             z-index: 1000;
+            overflow-y: auto;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        #sidebar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.1);
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         #sidebar .sidebar-header {
@@ -570,6 +585,9 @@
                 <li th:classappend="${currentUri == '/attendance' ? 'active' : ''}">
                     <a href="/attendance"><i class="fa-solid fa-clock"></i> Attendance</a>
                 </li>
+                <li th:classappend="${currentUri == '/attendance/face-approvals' ? 'active' : ''}" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                    <a href="/attendance/face-approvals"><i class="fa-solid fa-face-smile"></i> Face Approvals</a>
+                </li>
                 <li th:classappend="${currentUri == '/leave' ? 'active' : ''}">
                     <a href="/leave"><i class="fa-solid fa-calendar-alt"></i> Leave Requests</a>
                 </li>
@@ -587,13 +605,8 @@
                 </li>
             </ul>
 
-            <div class="p-4 mt-5 text-center">
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="btn btn-outline-light w-100"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-                </form>
-            </div>
         </nav>
-
+ 
         <!-- Page Content -->
         <div id="main-content" class="p-4" th:classappend="${bodyClass}">
             
@@ -611,7 +624,12 @@
                             <i th:unless="${globalProfileImageUrl != null}" class="fa-solid fa-user-circle me-2 fa-lg"></i>
                             <span th:text="${#authentication.name}">User</span>
                         </a>
-                        <button class="btn btn-outline-secondary rounded-circle me-3" id="themeToggle" style="width: 40px; height: 40px;">
+                        <form th:action="@{/logout}" method="post" class="d-inline me-3">
+                            <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill">
+                                <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                            </button>
+                        </form>
+                        <button class="btn btn-outline-secondary rounded-circle" id="themeToggle" style="width: 40px; height: 40px;">
                             <i class="fa-solid fa-moon"></i>
                         </button>
                     </div>

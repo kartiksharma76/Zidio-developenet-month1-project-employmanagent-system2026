@@ -48,4 +48,12 @@ public class Employee {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_auth_id", referencedColumnName = "id", unique = true)
     private UserAuth userAuth;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String faceVector;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String facePhoto;
+
+    private String faceStatus; // PENDING, APPROVED, REJECTED
 }

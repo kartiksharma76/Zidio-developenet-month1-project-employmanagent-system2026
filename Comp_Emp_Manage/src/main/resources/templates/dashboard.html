@@ -263,7 +263,7 @@
                         }
                     });
 
-                    // Growth & Payroll Trend Chart (Multi-axis Line Chart)
+                    // Growth & Payroll Trend Chart (Multi-axis Area Chart with Stock Market Style Fading Gradients)
                     const growthCtx = document.getElementById('growthChart').getContext('2d');
                     let growthChart = new Chart(growthCtx, {
                         type: 'line',
@@ -272,22 +272,42 @@
                             datasets: [
                                 {
                                     label: 'Monthly Payroll (k$)',
-                                    data: [80, 110, 140, 180, 210, 250, 290],
+                                    data: [120, 160, 140, 190, 175, 230, 210],
                                     borderColor: 'rgba(59, 130, 246, 1)',
-                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
                                     borderWidth: 3,
                                     fill: true,
                                     tension: 0.4,
+                                    backgroundColor: function(context) {
+                                        const chart = context.chart;
+                                        const {ctx, chartArea} = chart;
+                                        if (!chartArea) {
+                                            return null;
+                                        }
+                                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                                        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+                                        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+                                        return gradient;
+                                    },
                                     yAxisID: 'y'
                                 },
                                 {
                                     label: 'Active Employees',
-                                    data: [4, 6, 8, 9, 11, 13, 15],
+                                    data: [8, 11, 9, 13, 12, 16, 14],
                                     borderColor: 'rgba(139, 92, 246, 1)',
-                                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
                                     borderWidth: 3,
-                                    fill: false,
+                                    fill: true,
                                     tension: 0.4,
+                                    backgroundColor: function(context) {
+                                        const chart = context.chart;
+                                        const {ctx, chartArea} = chart;
+                                        if (!chartArea) {
+                                            return null;
+                                        }
+                                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                                        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+                                        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+                                        return gradient;
+                                    },
                                     yAxisID: 'y1'
                                 }
                             ]
